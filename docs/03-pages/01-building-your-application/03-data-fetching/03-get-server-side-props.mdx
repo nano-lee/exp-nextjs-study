@@ -1,146 +1,148 @@
 ---
-sidebar_position: 4
 title: getServerSideProps
 description: Fetch data on each request with `getServerSideProps`.
 ---
 
-If you export a function called `getServerSideProps` (Server-Side Rendering) from a page, Next.js will pre-render this page on each request using the data returned by `getServerSideProps`.
+페이지에서 `getServerSideProps`(SSR)라는 함수를 내보내는 경우, Next.js는 `getServerSideProps`가 반환한 데이터를 사용하여 각 요청에 대해 이 페이지를 미리 렌더링합니다.
 
 ```tsx filename="pages/index.tsx" switcher
-import type { InferGetServerSidePropsType, GetServerSideProps } from "next";
+import type { InferGetServerSidePropsType, GetServerSideProps } from 'next'
 
 type Repo = {
-	name: string;
-	stargazers_count: number;
-};
+  name: string
+  stargazers_count: number
+}
 
-export const getServerSideProps = (async (context) => {
-	const res = await fetch("https://api.github.com/repos/vercel/next.js");
-	const repo = await res.json();
-	return { props: { repo } };
-}) satisfies GetServerSideProps<{
-	repo: Repo;
-}>;
+export const getServerSideProps: GetServerSideProps<{
+  repo: Repo
+}> = async () => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
+}
 
 export default function Page({
-	repo,
+  repo,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-	return repo.stargazers_count;
+  return repo.stargazers_count
 }
 ```
 
 ```jsx filename="pages/index.js" switcher
-export async function getServerSideProps() {
-	const res = await fetch("https://api.github.com/repos/vercel/next.js");
-	const repo = await res.json();
-	return { props: { repo } };
+export const getServerSideProps = async () => {
+  const res = await fetch('https://api.github.com/repos/vercel/next.js')
+  const repo = await res.json()
+  return { props: { repo } }
 }
 
 export default function Page({ repo }) {
-	return repo.stargazers_count;
+  return repo.stargazers_count
 }
 ```
 
-> Note that irrespective of rendering type, any `props` will be passed to the page component and can be viewed on the client-side in the initial HTML. This is to allow the page to be [hydrated](https://react.dev/reference/react-dom/hydrate) correctly. Make sure that you don't pass any sensitive information that shouldn't be available on the client in `props`.
+> 렌더링 유형에 관계없이 모든 `props`는 페이지 컴포넌트로 전달되며 초기 HTML의 client-side에서 볼 수 있습니다. 이는 페이지가 올바르게 [hydrated](https://react.dev/reference/react-dom/hydrate)될 수 있도록 하기 위한 것입니다. 클라이언트에서 사용할 수 없어야 하는 민감한 정보를 `props`에 전달하지 않도록 주의하세요.
 
-## When does getServerSideProps run
+## 언제 getServerSideProps가 실행되는가
 
-`getServerSideProps` only runs on server-side and never runs on the browser. If a page uses `getServerSideProps`, then:
+`getServerSideProps`는 server-side에서만 실행되며 브라우저에서는 실행되지 않습니다.
 
--   When you request this page directly, `getServerSideProps` runs at request time, and this page will be pre-rendered with the returned props
--   When you request this page on client-side page transitions through [`next/link`](/docs/pages/api-reference/components/link) or [`next/router`](/docs/pages/api-reference/functions/use-router), Next.js sends an API request to the server, which runs `getServerSideProps`
+만약 페이지에서 `getServerSideProps`를 사용하는 경우:
 
-`getServerSideProps` returns JSON which will be used to render the page. All this work will be handled automatically by Next.js, so you don’t need to do anything extra as long as you have `getServerSideProps` defined.
+- 이 페이지를 직접 요청하면 요청 시점에 `getServerSideProps`가 실행되며, 이 페이지는 반환된 프로퍼티로 미리 렌더링됩니다.
+- [`next/link`](/docs/pages/api-reference/components/link) or [`next/router`](/docs/pages/api-reference/functions/use-router)를 통해 client-side 페이지 전환에서 이 페이지를 요청하면, Next.js가 서버에 API 요청을 전송하고, 서버는 `getServerSideProps`를 실행합니다.
 
-You can use the [next-code-elimination tool](https://next-code-elimination.vercel.app/) to verify what Next.js eliminates from the client-side bundle.
+`getServerSideProps`는 페이지를 렌더링하는 데 사용되는 JSON을 반환합니다. 이 모든 작업은 Next.js가 자동으로 처리하므로 `getServerSideProps`가 정의되어 있는 한 추가적인 작업을 수행할 필요가 없습니다.
 
-`getServerSideProps` can only be exported from a **page**. You can’t export it from non-page files.
+[next-code-elimination tool](https://next-code-elimination.vercel.app/)을 사용하여 client-side  bundle에서 Next.js가 무엇을 제거하는 지 확인할 수 있습니다.
 
-Note that you must export `getServerSideProps` as a standalone function — it will **not** work if you add `getServerSideProps` as a property of the page component.
+`getServerSideProps` 는 **page**에서만 내보낼 수 있습니다. 페이지가 아닌 파일에서는 내보낼 수 없습니다.
 
-The [`getServerSideProps` API reference](/docs/pages/api-reference/functions/get-server-side-props) covers all parameters and props that can be used with `getServerSideProps`.
+페이지 컴포넌트의 프로퍼티로 `getServerSideProps`를 추가하면 작동하지 **않으므로** 독립형 함수로 내보내야 한다는 점에 유의하세요.
 
-## When should I use getServerSideProps
+[`getServerSideProps` API 레퍼런스](https://nextjs.org/docs/pages/api-reference/functions/get-server-side-props)에는 `getServerSideProps`와 함께 사용할 수 있는 모든 매개변수 및 프로퍼티가 나와 있습니다.
 
-You should use `getServerSideProps` only if you need to render a page whose data must be fetched at request time. This could be due to the nature of the data or properties of the request (such as `authorization` headers or geo location). Pages using `getServerSideProps` will be server side rendered at request time and only be cached if [cache-control headers are configured](/docs/pages/building-your-application/deploying/production-checklist#caching).
+## getServerSideProps를 언제 사용해야할까
 
-If you do not need to render the data during the request, then you should consider fetching data on the [client side](#fetching-data-on-the-client-side) or [`getStaticProps`](/docs/pages/building-your-application/data-fetching/get-static-props).
+요청 시 데이터를 가져와야 하는 페이지를 렌더링해야 하는 경우에만 `getServerSideProps`를 사용해야 합니다. 이는 데이터의 특성이나 요청의 속성(예: `authorization` 헤더 또는 지리적 위치) 때문일 수 있습니다. `getServerSideProps`를 사용하는 페이지는 요청 시 server-side에서 렌더링되며[cache-control 헤더가 구성된 경우](https://nextjs.org/docs/pages/building-your-application/deploying/production-checklist#caching)에만 캐시됩니다.
+
+요청 중에 데이터를 렌더링할 필요가 없는 경우 [client-side](#fetching-data-on-the-client-side) 또는 [`getStaticProps`](https://nextjs.org/docs/pages/building-your-application/data-fetching/get-static-props)에서 데이터를 가져오는 것을 고려해야 합니다.
 
 ### getServerSideProps or API Routes
 
-It can be tempting to reach for an [API Route](/docs/pages/building-your-application/routing/api-routes) when you want to fetch data from the server, then call that API route from `getServerSideProps`. This is an unnecessary and inefficient approach, as it will cause an extra request to be made due to both `getServerSideProps` and API Routes running on the server.
+서버에서 데이터를 가져오고 싶을 때 [API Route](https://nextjs.org/docs/pages/building-your-application/routing/api-routes)를 찾은 다음 `getServerSideProps`에서 해당 API Route(경로)를 호출하고 싶은 유혹을 느낄 수 있습니다. 이 방법은 서버에서 실행 중인 `getServerSideProps`와 API Route로 인해 추가 요청이 발생하기 때문에 불필요하고 비효율적인 접근 방식입니다.
 
-Take the following example. An API route is used to fetch some data from a CMS. That API route is then called directly from `getServerSideProps`. This produces an additional call, reducing performance. Instead, directly import the logic used inside your API Route into `getServerSideProps`. This could mean calling a CMS, database, or other API directly from inside `getServerSideProps`.
+다음 예제를 살펴보겠습니다. API Route는 CMS에서 일부 데이터를 가져오는 데 사용됩니다. 그런 다음 해당 API Route는 `getServerSideProps`에서 직접 호출됩니다. 이렇게 하면 추가 호출이 발생하여 성능이 저하됩니다. 대신 API Route 내부에서 사용되는 로직을 `getServerSideProps`로 직접 가져오세요. 즉, `getServerSideProps` 내부에서 CMS, 데이터베이스 또는 기타 API를 직접 호출할 수 있습니다.
 
 ### getServerSideProps with Edge API Routes
 
-`getServerSideProps` can be used with both [Serverless and Edge Runtimes](/docs/pages/building-your-application/rendering/edge-and-nodejs-runtimes), and you can set props in both. However, currently in the Edge Runtime, you do not have access to the response object. This means that you cannot — for example — add cookies in `getServerSideProps`. To have access to the response object, you should **continue to use the Node.js runtime**, which is the default runtime.
+`getServerSideProps`는 [서버리스 런타임과 엣지 런타임](https://nextjs.org/docs/pages/building-your-application/rendering/edge-and-nodejs-runtimes) 모두에서 사용할 수 있으며, 두 런타임 모두에서 props를 설정할 수 있습니다.  However, currently in the Edge Runtime, you do not have access to the response object. 그러나 현재 Edge 런타임에서는 응답 객체에 액세스할 수 없습니다. 즉, 예를 들어 `getServerSideProps`에서 쿠키를 추가할 수 없습니다. 응답 객체에 액세스하려면 **기본 런타임인 Node.js 런타임을 계속 사용**해야 합니다.
 
-You can explicitly set the runtime on a per-page basis by modifying the `config`, for example:
+예를 들어 `config`를 수정하여 페이지별로 런타임을 명시적으로 설정할 수 있습니다 :
 
 ```jsx filename="pages/index.js"
 export const config = {
-	runtime: "nodejs", // or "edge"
-};
+  runtime: 'nodejs', // or "edge"
+}
 
-export const getServerSideProps = async () => {};
+export const getServerSideProps = async () => {}
 ```
 
-## Fetching data on the client side
+## client-side에서 Data Fetching
 
-If your page contains frequently updating data, and you don’t need to pre-render the data, you can fetch the data on the [client side](/docs/pages/building-your-application/data-fetching/client-side). An example of this is user-specific data:
+페이지에 자주 업데이트되는 데이터가 포함되어 있고 데이터를 미리 렌더링할 필요가 없는 경우 [클라이언트 측](https://nextjs.org/docs/pages/building-your-application/data-fetching/client-side)에서 데이터를 가져올 수 있습니다. 사용자 별 데이터를 예로 들 수 있습니다 :
 
--   First, immediately show the page without data. Parts of the page can be pre-rendered using Static Generation. You can show loading states for missing data
--   Then, fetch the data on the client side and display it when ready
+- 먼저 데이터가 없는 페이지를 즉시 표시합니다. 페이지의 일부는 정적 생성을 사용하여 미리 렌더링할 수 있습니다. 누락된 데이터에 대한 로딩 상태를 표시할 수 있습니다.
+- 그런 다음 클라이언트 측에서 데이터를 가져와 준비가 되면 표시합니다.
 
-This approach works well for user dashboard pages, for example. Because a dashboard is a private, user-specific page, SEO is not relevant and the page doesn’t need to be pre-rendered. The data is frequently updated, which requires request-time data fetching.
+이 접근 방식은 예를 들어 사용자 대시보드 페이지에 적합합니다. 대시보드는 비공개적인 사용자별 페이지이므로, SEO는 관련이 없으며 페이지를 미리 렌더링할 필요가 없습니다. 데이터는 자주 업데이트되므로 요청 시 데이터를 가져와야 합니다.
 
-## Using getServerSideProps to fetch data at request time
+## 요청 시 데이터를 가져오기 위해 getServerSideProps 사용
 
-The following example shows how to fetch data at request time and pre-render the result.
+다음 예제는 요청 시점에 데이터를 가져와 결과를 미리 렌더링하는 방법을 보여줍니다.
 
 ```jsx
-// This gets called on every request
+function Page({ data }) {
+  // data 렌더링...
+}
+
+// 모든 요청에 대해 호출됩니다
 export async function getServerSideProps() {
-	// Fetch data from external API
-	const res = await fetch(`https://.../data`);
-	const data = await res.json();
+  // 외부 API에서 데이터 가져오기
+  const res = await fetch(`https://.../data`)
+  const data = await res.json()
 
-	// Pass data to the page via props
-	return { props: { data } };
+  // props를 통해 페이지에 데이터 전달
+  return { props: { data } }
 }
 
-export default function Page({ data }) {
-	// Render data...
-}
+export default Page
 ```
 
-## Caching with Server-Side Rendering (SSR)
+## Server-Side Rendering(SSR)을 통한 캐싱
 
-You can use caching headers (`Cache-Control`) inside `getServerSideProps` to cache dynamic responses. For example, using [`stale-while-revalidate`](https://web.dev/stale-while-revalidate/).
+`getServerSideProps` 내부의 캐싱 헤더(`Cache-Control`)를 사용하여 동적 응답을 캐싱할 수 있습니다. 예를 들어, [`stale-while-revalidate`](https://web.dev/stale-while-revalidate/)를 사용합니다.
 
 ```jsx
-// This value is considered fresh for ten seconds (s-maxage=10).
-// If a request is repeated within the next 10 seconds, the previously
-// cached value will still be fresh. If the request is repeated before 59 seconds,
-// the cached value will be stale but still render (stale-while-revalidate=59).
+// 이 값은 10초 동안 새로 고침된 것으로 간주됩니다(s-maxage=10).
+// 다음 10초 이내에 요청이 반복되면 이전에 캐시된 값은 여전히 최신 상태로 유지됩니다. 
+// 59초 이전에 요청이 반복되면 캐시된 값은 오래되었지만 여전히 렌더링됩니다(stale-while-revalidate=59).
 //
-// In the background, a revalidation request will be made to populate the cache
-// with a fresh value. If you refresh the page, you will see the new value.
+// 백그라운드에서 캐시를 새로운 값으로 채우기 위해 재검증 요청이 수행됩니다.
+// 페이지를 새로 고치면 새 값을 볼 수 있습니다.
 export async function getServerSideProps({ req, res }) {
-	res.setHeader(
-		"Cache-Control",
-		"public, s-maxage=10, stale-while-revalidate=59",
-	);
+  res.setHeader(
+    'Cache-Control',
+    'public, s-maxage=10, stale-while-revalidate=59'
+  )
 
-	return {
-		props: {},
-	};
+  return {
+    props: {},
+  }
 }
 ```
 
-Learn more about [caching](/docs/pages/building-your-application/deploying/production-checklist#caching).
+[caching](https://nextjs.org/docs/pages/building-your-application/deploying/production-checklist#caching)에 대해 더 알아보세요.
 
-## Does getServerSideProps render an error page
+## getServerSideProps가 오류 페이지를 렌더링하나요?
 
-If an error is thrown inside `getServerSideProps`, it will show the `pages/500.js` file. Check out the documentation for [500 page](/docs/pages/building-your-application/routing/custom-error#500-page) to learn more on how to create it. During development this file will not be used and the dev overlay will be shown instead.
+`getServerSideProps` 내에서 에러가 발생하면 `pages/500.js` 파일이 표시됩니다. [500 page](/https://nextjs.org/docs/pages/building-your-application/routing/custom-error#500-page) 문서를 확인하여 이 페이지의 생성 방법에 대해 자세히 알아보세요. 개발 중에는 이 파일이 사용되지 않으며 대신 dev overlay가 표시됩니다.
