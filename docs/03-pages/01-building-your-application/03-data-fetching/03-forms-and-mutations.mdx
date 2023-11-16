@@ -15,9 +15,9 @@ Form을 사용하면 웹 애플리케이션에서 데이터를 생성하고 업�
 
 > **알아두면 좋은 정보:**
 >
-> - 앱 라우터에서 양식 제출 및 데이터 변형을 처리하는 데 서버 액션을 사용할 것을 [점진적으로 권장](/docs/app/building-your-application/upgrading/app-router-migration)할 예정입니다. [서버 액션]((/docs/app/building-your-application/data-fetching/forms-and-mutations#how-server-actions-work))을 사용하면 API Route를 수동으로 만들 필요 없이 컴포넌트에서 직접 호출할 수 있는 비동기 서버 함수를 정의할 수 있습니다.
-> = API Route는 [CORS header를 지정하지 않으므로]((https://developer.mozilla.org/docs/Web/HTTP/CORS)) 기본적으로 동일 출처만 지정합니다.
-> - API Route는 서버에서 실행되므로 클라이언트에 노출하지 않고 [환경 변수](/docs/pages/building-your-application/configuring/environment-variables)를 통해 API 키와 같은 민감한 값을 사용할 수 있습니다. 이는 애플리케이션의 보안에 매우 중요합니다.
+> - 앱 라우터에서 양식 제출 및 데이터 변형을 처리하는 데 서버 액션을 사용할 것을 [점진적으로 권장](https://nextjs.org/docs/app/building-your-application/upgrading/app-router-migration)할 예정입니다. [서버 액션](https://nextjs.org/docs/app/building-your-application/data-fetching/forms-and-mutations#how-server-actions-work)을 사용하면 API Route를 수동으로 만들 필요 없이 컴포넌트에서 직접 호출할 수 있는 비동기 서버 함수를 정의할 수 있습니다.
+> = API Route는 [CORS header를 지정하지 않으므로](https://developer.mozilla.org/docs/Web/HTTP/CORS) 기본적으로 동일 출처만 지정합니다.
+> - API Route는 서버에서 실행되므로 클라이언트에 노출하지 않고 [환경 변수](https://nextjs.org/docs/pages/building-your-application/configuring/environment-variables)를 통해 API 키와 같은 민감한 값을 사용할 수 있습니다. 이는 애플리케이션의 보안에 매우 중요합니다.
 
 <details>
 <summary>app-router action</summary>
@@ -105,9 +105,9 @@ export default function Page() {
 
 ### Redirecting
 
-If you would like to redirect the user to a different route after a mutation, you can [`redirect`](/docs/pages/building-your-application/routing/api-routes#response-helpers) to any absolute or relative URL:
+If you would like to redirect the user to a different route after a mutation, you can [`redirect`](https://nextjs.org/docs/pages/building-your-application/routing/api-routes#response-helpers) to any absolute or relative URL:
 
-Mutation 후 사용자를 다른 경로로 [`리디렉션`](/docs/pages/building-your-application/routing/api-routes#response-helpers)하려는 경우 절대 또는 상대 URL로 리디렉션할 수 있습니다:
+Mutation 후 사용자를 다른 경로로 [`리디렉션`](https://nextjs.org/docs/pages/building-your-application/routing/api-routes#response-helpers)하려는 경우 절대 또는 상대 URL로 리디렉션할 수 있습니다:
 
 ```ts filename="pages/api/submit.ts" switcher
 import type { NextApiRequest, NextApiResponse } from 'next'
@@ -269,7 +269,7 @@ export default async function handler(req, res) {
 
 ### Reading Cookies
 
-cookies request helper를 사용하여 API Route 내에서 [`쿠키`](/docs/pages/building-your-application/routing/api-routes#request-helpers)를 읽을 수 있습니다:
+cookies request helper를 사용하여 API Route 내에서 [`쿠키`](https://nextjs.org/docs/pages/building-your-application/routing/api-routes#request-helpers)를 읽을 수 있습니다:
 
 ```ts filename="pages/api/cookie.ts" switcher
 import type { NextApiRequest, NextApiResponse } from 'next'
