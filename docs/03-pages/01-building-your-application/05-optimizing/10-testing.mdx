@@ -473,9 +473,9 @@ moduleNameMapper: {
 
 **첫 번째 테스트 작성하기**
 
-Your project is now ready to run tests. Follow Jest's convention by adding tests to the `__tests__` folder in your project's root directory.
+이제 프로젝트에서 테스트를 실행할 준비가 되었습니다. Jest 컨벤션에 따라 프로젝트 루트 디렉터리에 `__test__` 폴더를 추가하고 여기에 테스트 코드를 작성하세요.
 
-For example, we can add a test to check if the `<Home />` component successfully renders a heading:
+아래는 `<Home />` 컴포넌트가 heading을 성공적으로 렌더링하는지 확인하는 테스트를 추가하는 예시입니다.
 
 ```jsx filename="__tests__/index.test.js"
 import { render, screen } from "@testing-library/react";
@@ -495,7 +495,7 @@ describe("Home", () => {
 });
 ```
 
-Optionally, add a [snapshot test](https://jestjs.io/docs/snapshot-testing) to keep track of any unexpected changes to your `<Home />` component:
+선택사항으로, [스냅샷 테스트](https://jestjs.io/docs/snapshot-testing)를 추가하여 `<Home />` 컴포넌트에 예상치 못한 변경사항이 있는지 추적할 수 있습니다.
 
 ```jsx filename="__tests__/snapshot.js"
 import { render } from "@testing-library/react";
@@ -507,25 +507,21 @@ it("renders homepage unchanged", () => {
 });
 ```
 
-> **Good to know**: Test files should not be included inside the Pages Router because any files inside the Pages Router are considered routes.
+> **토막 상식**: 페이지 라우터 내부의 모든 파일은 경로로 간주되므로 테스트 파일은 반드시 페이지 라우터 내부에 포함되어서는 안됩니다.
 
-**Running your test suite**
+**테스트 모음 실행하기**
 
-Run `npm run test` to run your test suite. After your tests pass or fail, you will notice a list of interactive Jest commands that will be helpful as you add more tests.
+`npm run test` 스크립트를 통해 테스트 모음을 실행합니다. 테스트가 성공하거나 실패한 후에는 더 많은 테스트를 추가할 때 도움이 되는 대화형 Jest 명령어 목록이 표시됩니다.
 
-For further reading, you may find these resources helpful:
+더 자세한 내용은 아래 리소스를 참고하세요.
 
 -   [Jest Docs](https://jestjs.io/docs/getting-started)
 -   [React Testing Library Docs](https://testing-library.com/docs/react-testing-library/intro/)
--   [Testing Playground](https://testing-playground.com/) - use good testing practices to match elements.
+-   [Testing Playground](https://testing-playground.com/) - element match를 위한 좋은 테스팅 방법을 보여줍니다.
 
-## Community Packages and Examples
+## 커뮤니티 패키지 및 예제
 
-The Next.js community has created packages and articles you may find helpful:
+Next.js 커뮤니티에서 도움이 될 만한 패키지와 문서를 만들었습니다.
 
 -   [next-router-mock](https://github.com/scottrippey/next-router-mock) for Storybook.
 -   [Test Preview Vercel Deploys with Cypress](https://glebbahmutov.com/blog/develop-preview-test/) by Gleb Bahmutov.
-
-For more information on what to read next, we recommend:
-
-    - pages/basic-features/environment-variables#test-environment-variables
