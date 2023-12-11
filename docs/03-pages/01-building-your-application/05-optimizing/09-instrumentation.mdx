@@ -1,8 +1,54 @@
 ---
 sidebar_position: 9
 title: Instrumentation
-description: Learn how to use instrumentation to run code at server startup in your Next.js app
-source: app/building-your-application/optimizing/instrumentation
+description: Instrumentation을 사용하여 Next.js 앱에서 서버 시작 시 코드를 실행하는 방법을 알아봅시다.
 ---
 
-{/* DO NOT EDIT. The content of this doc is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `Content` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
+프로젝트의 **루트 디렉토리** (또는 `src` 폴더를 사용하는 경우 해당 폴더 내부)에 있는 `instrumentation.ts` (또는 `.js`) 파일에서 `register`라는 이름의 함수를 내보내면 새로운 Next.js 서버 인스턴스가 부트스트랩될 때마다 해당 함수를 호출합니다.
+
+> **토막 상식**
+>
+> -   이 기능은 아직 **실험적**으로 제공됩니다. 이 기능을 사용하려면 `next.config.js`에서 `experimental.instrumentationHook = true;` 설정을 추가해야 합니다.
+> -   `instrumentation` 파일은 `app`이나 `pages` 디렉터리가 아닌 프로젝트 루트에 있어야 합니다. `src` 폴더를 사용하는 경우 `pages`와 `app`과 함께 `src` 내부에 파일을 배치하세요.
+> -   만약 [`pageExtensions` 설정 옵션](/docs/pages/api-reference/next-config-js/pageExtensions)을 사용하여 접미사를 추가하고 있다면, `instrumentation` 파일 이름도 이에 일치하도록 업데이트해야 합니다.
+> -   [with-opentelemetry](https://github.com/vercel/next.js/tree/canary/examples/with-opentelemetry) 예제를 활용하세요.
+
+`register` 함수가 배포되면 각 콜드 부트마다 호출됩니다. (하지만 각 환경에서 정확히 한 번씩만 호출됩니다.)
+
+이것은 코드에서 파일을 가져올 때 발생할 수 있는 사이드 이펙트를 활용하는데 유용합니다. 예를 들어, 전역 변수를 정의하거나 초기화하는 파일을 가져오되 코드에서는 이 파일을 직접적으로 사용하지 않는 경우가 있습니다. 이럴때 여기서 파일을 가져와 전역 변수를 사용할 수 있도록 할 수 있습니다.
+
+You can import files with side effects in `instrumentation.ts`, which you might want to use in your `register` function as demonstrated in the following example:
+다음 예제에서처럼 `instrumentation.ts`에서 사이드 이펙트를 가진 파일을 가져오고 `register` 함수에서 사용할 수 있습니다.
+
+```ts filename="your-project/instrumentation.ts" switcher
+import { init } from "package-init";
+
+export function register() {
+	init();
+}
+```
+
+그러나 사이드 이펙트가 있는 파일을 되도록 `import`를 사용하여 `register` 함수 내에서 가져오는것을 권장합니다. 다음은 `register` 함수 내에서 `import`를 사용하는 기본적인 예시입니다.
+
+```ts filename="your-project/instrumentation.ts" switcher
+export async function register() {
+	await import("package-with-side-effect");
+}
+```
+
+이렇게 함으로써 모든 사이드 이펙트 코드를 한 곳에 모아 파일로 인한 의도치 않은 결과를 방지할 수 있습니다.
+
+We call `register` in all environments, so it's necessary to conditionally import any code that doesn't support both `edge` and `nodejs`. You can use the environment variable `NEXT_RUNTIME` to get the current environment. Importing an environment-specific code would look like this:
+`register`는 모든 환경에서 호출되므로, `edge`와 `nodejs` 환경을 모두 지원하지 않는 코드를 조건부로 관리하는게 필요합니다. `NEXT_RUNTIME` 환경 변수를 사용하여 현재 환경을 가져올 수 있습니다. 다음과 같이 환경별로 코드를 가져오세요.
+
+```ts filename="your-project/instrumentation.ts" switcher
+export async function register() {
+	if (process.env.NEXT_RUNTIME === "nodejs") {
+		await import("./instrumentation-node");
+	}
+
+	if (process.env.NEXT_RUNTIME === "edge") {
+		await import("./instrumentation-edge");
+	}
+}
+```

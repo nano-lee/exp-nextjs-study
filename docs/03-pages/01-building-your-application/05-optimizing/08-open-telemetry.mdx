@@ -1,8 +1,274 @@
 ---
 sidebar_position: 8
-title: OpenTelemetry
-description: Learn how to instrument your Next.js app with OpenTelemetry.
-source: app/building-your-application/optimizing/open-telemetry
+title: 오픈텔레메트리(OpenTelemetry)
+description: 오픈텔레메트리를 사용하여 Next.js 앱을 계측하는 방법을 배워봅시다.
 ---
 
-{/* DO NOT EDIT. The content of this doc is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `Content` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
+> **토막 상식**: 이 기능은 아직 **실험적**입니다. `next.config.js`에서 `experimental.instrumentationHook = true;`을 통해 활성화해야 사용 가능합니다.
+
+Observability는 Next.js 앱의 동작과 성능을 이해하고 최적화하는 데 매우 중요합니다.
+
+앱이 복잡해질수록 발생 가능한 문제를 식별하고 진단하는 것이 점점 더 어려워집니다. 개발자는 로그, 지표와 같은 observability 툴을 활용하여 앱의 동작을 이해하고 최적화할 영역을 식별할 수 있습니다. observability를 통해 개발자는 문제가 더 큰 문제로 발전하기 전에 문제를 해결하고 더 나은 사용자 경험을 제공할 수 있습니다. 따라서 성능을 개선하고, 리소스를 최적화하고, 사용자 경험을 향상시키기 위해 Next.js 앱에서 observability를 사용하는 것이 매우 좋습니다.
+
+앱 계측에 오픈텔레메트리를 사용하는 것을 권장합니다.이는 플랫폼에 종속되지 않는 방식으로 앱을 계측할 수 있으며, 코드를 변경하지 않고도 observability 제공자를 변경할 수 있습니다. 오픈텔레메트리에 대한 자세한 정보는 [오픈텔레메트리 공식 문서](https://opentelemetry.io/docs/)를 참고하세요.
+
+이 문서에서는 _Span_, _Trace_ 또는 *Exporter*와 같은 용어를 사용합니다. 이 용어들은 [오픈텔레메트리 Observability 입문서](https://opentelemetry.io/docs/concepts/observability-primer/)에서 확인할 수 있습니다.
+
+Next.js는 오픈텔레메트리 계측을 지원합니다. 오픈텔레메트리를 활성화하면 `getStaticProps`와 같은 모든 코드가 유용한 속성이 있는 *span*으로 자동으로 래핑됩니다.
+
+> **토막 상식**: 현재 서버리스 함수에서만 오픈텔레메트리 바인딩을 지원합니다. 에지 또는 클라이언트 사이드 코드는 지원하지 않습니다.
+
+## 시작하기
+
+오픈텔레메트리는 확장성이 뛰어나지만 제대로 설정하는것은 꽤 복잡할 수 있습니다. 그래서 우리는 빠르게 시작할 수 있도록 도와주는 `@vercel/otel` 패키지를 준비했습니다. 이 패키지는 확장성이 없으며, 설정을 사용자 정의해야하는 경우 오픈텔레메트리를 수동으로 구성해야 합니다.
+
+### `@vercel/otel` 사용하기
+
+우선 `@vercel/otel`을 설치해야 합니다.
+
+```bash filename="Terminal"
+npm install @vercel/otel
+```
+
+다음으로, 프로젝트의 루트 디렉터리에(`src` 폴더를 사용한다면 그곳에) `instrumentation.ts`(또는 `.js`) 파일을 생성합니다.
+
+```ts filename="your-project/instrumentation.ts" switcher
+import { registerOTel } from "@vercel/otel";
+
+export function register() {
+	registerOTel("next-app");
+}
+```
+
+> **토막 상식**
+>
+> -   `instrumentation` 파일은 `app`이나 `pages`디렉터리가 아닌 프로젝트의 루트에 있어야 합니다. `src`폴더를 사용하는 경우`pages`, `app`과 함께 `src` 안에 위치시킵니다.
+> -   [`pageExtensions` 구성 옵션](/docs/pages/api-reference/next-config-js/pageExtensions)을 사용하여 접미사를 추가하는 경우 `instrumentation` 파일 이름도 이에 일치하도록 업데이트해야 합니다.
+> -   참고하여 사용할 수 있는 [with-opentelemetry](https://github.com/vercel/next.js/tree/canary/examples/with-opentelemetry) 예시를 만들어뒀습니다.
+
+### 오픈텔레메트리 수동 구성
+
+우리가 제공하는 `@vercel/otel` 래퍼가 필요한 요구사항을 충족시키지 못한다면 오픈텔레메트리를 수동으로 구성할 수 있습니다.
+
+먼저, 오픈텔레메트리 패키지를 설치해야 합니다.
+
+```bash filename="Terminal"
+npm install @opentelemetry/sdk-node @opentelemetry/resources @opentelemetry/semantic-conventions @opentelemetry/sdk-trace-node @opentelemetry/exporter-trace-otlp-http
+```
+
+다음으로, `instrumentation.ts`에서 `NodeSDK`를 초기화합니다. 오픈텔레메트리 API는 에지 런타임과 호환되지 않으므로 `process.env.NEXT_RUNTIME === 'nodejs'`일때만 조건부로 활성화해야 합니다. `instrumentation.node.ts` 파일을 새로 만들고, `node`를 사용할 때만 조건부로 가져오도록 하는것을 권장합니다.
+
+```ts filename="instrumentation.ts" switcher
+export async function register() {
+	if (process.env.NEXT_RUNTIME === "nodejs") {
+		await import("./instrumentation.node.ts");
+	}
+}
+```
+
+```ts filename="instrumentation.node.ts" switcher
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-node";
+
+const sdk = new NodeSDK({
+	resource: new Resource({
+		[SemanticResourceAttributes.SERVICE_NAME]: "next-app",
+	}),
+	spanProcessor: new SimpleSpanProcessor(new OTLPTraceExporter()),
+});
+sdk.start();
+```
+
+Doing this is equivalent to using `@vercel/otel`, but it's possible to modify and extend.
+For example, you could use `@opentelemetry/exporter-trace-otlp-grpc` instead of `@opentelemetry/exporter-trace-otlp-http` or you can specify more resource attributes.
+위 예시처럼만 하면 `@vercel/otel`을 사용하는것과 동일하지만, 여기에 더 많은 설정을 추가하거나 수정할 수 있습니다. 예를들어, `@opentelemetry/exporter-trace-otlp-grpc`를 `@opentelemetry/exporter-trace-otlp-http` 대신 사용하거나, 더 많은 리소스 속성을 지정할 수 있습니다.
+
+## Testing your instrumentation
+
+You need an OpenTelemetry collector with a compatible backend to test OpenTelemetry traces locally.
+We recommend using our [OpenTelemetry dev environment](https://github.com/vercel/opentelemetry-collector-dev-setup).
+
+If everything works well you should be able to see the root server span labeled as `GET /requested/pathname`.
+All other spans from that particular trace will be nested under it.
+
+Next.js traces more spans than are emitted by default.
+To see more spans, you must set `NEXT_OTEL_VERBOSE=1`.
+
+## Deployment
+
+### Using OpenTelemetry Collector
+
+When you are deploying with OpenTelemetry Collector, you can use `@vercel/otel`.
+It will work both on Vercel and when self-hosted.
+
+#### Deploying on Vercel
+
+We made sure that OpenTelemetry works out of the box on Vercel.
+
+Follow [Vercel documentation](https://vercel.com/docs/concepts/observability/otel-overview/quickstart) to connect your project to an observability provider.
+
+#### Self-hosting
+
+Deploying to other platforms is also straightforward. You will need to spin up your own OpenTelemetry Collector to receive and process the telemetry data from your Next.js app.
+
+To do this, follow the [OpenTelemetry Collector Getting Started guide](https://opentelemetry.io/docs/collector/getting-started/), which will walk you through setting up the collector and configuring it to receive data from your Next.js app.
+
+Once you have your collector up and running, you can deploy your Next.js app to your chosen platform following their respective deployment guides.
+
+### Custom Exporters
+
+We recommend using OpenTelemetry Collector.
+If that is not possible on your platform, you can use a custom OpenTelemetry exporter with [manual OpenTelemetry configuration](/docs/pages/building-your-application/optimizing/open-telemetry#manual-opentelemetry-configuration)
+
+## Custom Spans
+
+You can add a custom span with [OpenTelemetry APIs](https://opentelemetry.io/docs/instrumentation/js/instrumentation).
+
+```bash filename="Terminal"
+npm install @opentelemetry/api
+```
+
+The following example demonstrates a function that fetches GitHub stars and adds a custom `fetchGithubStars` span to track the fetch request's result:
+
+```ts
+import { trace } from "@opentelemetry/api";
+
+export async function fetchGithubStars() {
+	return await trace
+		.getTracer("nextjs-example")
+		.startActiveSpan("fetchGithubStars", async (span) => {
+			try {
+				return await getValue();
+			} finally {
+				span.end();
+			}
+		});
+}
+```
+
+The `register` function will execute before your code runs in a new environment.
+You can start creating new spans, and they should be correctly added to the exported trace.
+
+## Default Spans in Next.js
+
+Next.js automatically instruments several spans for you to provide useful insights into your application's performance.
+
+Attributes on spans follow [OpenTelemetry semantic conventions](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/). We also add some custom attributes under the `next` namespace:
+
+-   `next.span_name` - duplicates span name
+-   `next.span_type` - each span type has a unique identifier
+-   `next.route` - The route pattern of the request (e.g., `/[param]/user`).
+-   `next.page`
+    -   This is an internal value used by an app router.
+    -   You can think about it as a route to a special file (like `page.ts`, `layout.ts`, `loading.ts` and others)
+    -   It can be used as a unique identifier only when paired with `next.route` because `/layout` can be used to identify both `/(groupA)/layout.ts` and `/(groupB)/layout.ts`
+
+### `[http.method] [next.route]`
+
+-   `next.span_type`: `BaseServer.handleRequest`
+
+This span represents the root span for each incoming request to your Next.js application. It tracks the HTTP method, route, target, and status code of the request.
+
+Attributes:
+
+-   [Common HTTP attributes](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#common-attributes)
+    -   `http.method`
+    -   `http.status_code`
+-   [Server HTTP attributes](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#http-server-semantic-conventions)
+    -   `http.route`
+    -   `http.target`
+-   `next.span_name`
+-   `next.span_type`
+-   `next.route`
+
+### `render route (app) [next.route]`
+
+-   `next.span_type`: `AppRender.getBodyResult`.
+
+This span represents the process of rendering a route in the app router.
+
+Attributes:
+
+-   `next.span_name`
+-   `next.span_type`
+-   `next.route`
+
+### `fetch [http.method] [http.url]`
+
+-   `next.span_type`: `AppRender.fetch`
+
+This span represents the fetch request executed in your code.
+
+Attributes:
+
+-   [Common HTTP attributes](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#common-attributes)
+    -   `http.method`
+-   [Client HTTP attributes](https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#http-client)
+    -   `http.url`
+    -   `net.peer.name`
+    -   `net.peer.port` (only if specified)
+-   `next.span_name`
+-   `next.span_type`
+
+### `executing api route (app) [next.route]`
+
+-   `next.span_type`: `AppRouteRouteHandlers.runHandler`.
+
+This span represents the execution of an API route handler in the app router.
+
+Attributes:
+
+-   `next.span_name`
+-   `next.span_type`
+-   `next.route`
+
+### `getServerSideProps [next.route]`
+
+-   `next.span_type`: `Render.getServerSideProps`.
+
+This span represents the execution of `getServerSideProps` for a specific route.
+
+Attributes:
+
+-   `next.span_name`
+-   `next.span_type`
+-   `next.route`
+
+### `getStaticProps [next.route]`
+
+-   `next.span_type`: `Render.getStaticProps`.
+
+This span represents the execution of `getStaticProps` for a specific route.
+
+Attributes:
+
+-   `next.span_name`
+-   `next.span_type`
+-   `next.route`
+
+### `render route (pages) [next.route]`
+
+-   `next.span_type`: `Render.renderDocument`.
+
+This span represents the process of rendering the document for a specific route.
+
+Attributes:
+
+-   `next.span_name`
+-   `next.span_type`
+-   `next.route`
+
+### `generateMetadata [next.page]`
+
+-   `next.span_type`: `ResolveMetadata.generateMetadata`.
+
+This span represents the process of generating metadata for a specific page (a single route can have multiple of these spans).
+
+Attributes:
+
+-   `next.span_name`
+-   `next.span_type`
+-   `next.page`
