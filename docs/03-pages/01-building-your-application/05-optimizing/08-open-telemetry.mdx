@@ -1,42 +1,36 @@
 ---
 sidebar_position: 8
-title: OpenTelemetry
-description: Learn how to instrument your Next.js app with OpenTelemetry.
+title: 오픈텔레메트리(OpenTelemetry)
+description: 오픈텔레메트리를 사용하여 Next.js 앱을 계측하는 방법을 배워봅시다.
 ---
 
-> **Good to know**: This feature is **experimental**, you need to explicitly opt-in by providing `experimental.instrumentationHook = true;` in your `next.config.js`.
+> **토막 상식**: 이 기능은 아직 **실험적**입니다. `next.config.js`에서 `experimental.instrumentationHook = true;`을 통해 활성화해야 사용 가능합니다.
 
-Observability is crucial for understanding and optimizing the behavior and performance of your Next.js app.
+Observability는 Next.js 앱의 동작과 성능을 이해하고 최적화하는 데 매우 중요합니다.
 
-As applications become more complex, it becomes increasingly difficult to identify and diagnose issues that may arise. By leveraging observability tools, such as logging and metrics, developers can gain insights into their application's behavior and identify areas for optimization. With observability, developers can proactively address issues before they become major problems and provide a better user experience. Therefore, it is highly recommended to use observability in your Next.js applications to improve performance, optimize resources, and enhance user experience.
+앱이 복잡해질수록 발생 가능한 문제를 식별하고 진단하는 것이 점점 더 어려워집니다. 개발자는 로그, 지표와 같은 observability 툴을 활용하여 앱의 동작을 이해하고 최적화할 영역을 식별할 수 있습니다. observability를 통해 개발자는 문제가 더 큰 문제로 발전하기 전에 문제를 해결하고 더 나은 사용자 경험을 제공할 수 있습니다. 따라서 성능을 개선하고, 리소스를 최적화하고, 사용자 경험을 향상시키기 위해 Next.js 앱에서 observability를 사용하는 것이 매우 좋습니다.
 
-We recommend using OpenTelemetry for instrumenting your apps.
-It's a platform-agnostic way to instrument apps that allows you to change your observability provider without changing your code.
-Read [Official OpenTelemetry docs](https://opentelemetry.io/docs/) for more information about OpenTelemetry and how it works.
+앱 계측에 오픈텔레메트리를 사용하는 것을 권장합니다.이는 플랫폼에 종속되지 않는 방식으로 앱을 계측할 수 있으며, 코드를 변경하지 않고도 observability 제공자를 변경할 수 있습니다. 오픈텔레메트리에 대한 자세한 정보는 [오픈텔레메트리 공식 문서](https://opentelemetry.io/docs/)를 참고하세요.
 
-This documentation uses terms like _Span_, _Trace_ or _Exporter_ throughout this doc, all of which can be found in [the OpenTelemetry Observability Primer](https://opentelemetry.io/docs/concepts/observability-primer/).
+이 문서에서는 _Span_, _Trace_ 또는 *Exporter*와 같은 용어를 사용합니다. 이 용어들은 [오픈텔레메트리 Observability 입문서](https://opentelemetry.io/docs/concepts/observability-primer/)에서 확인할 수 있습니다.
 
-Next.js supports OpenTelemetry instrumentation out of the box, which means that we already instrumented Next.js itself.
-When you enable OpenTelemetry we will automatically wrap all your code like `getStaticProps` in _spans_ with helpful attributes.
+Next.js는 오픈텔레메트리 계측을 지원합니다. 오픈텔레메트리를 활성화하면 `getStaticProps`와 같은 모든 코드가 유용한 속성이 있는 *span*으로 자동으로 래핑됩니다.
 
-> **Good to know**: We currently support OpenTelemetry bindings only in serverless functions.
-> We don't provide any for `edge` or client side code.
+> **토막 상식**: 현재 서버리스 함수에서만 오픈텔레메트리 바인딩을 지원합니다. 에지 또는 클라이언트 사이드 코드는 지원하지 않습니다.
 
-## Getting Started
+## 시작하기
 
-OpenTelemetry is extensible but setting it up properly can be quite verbose.
-That's why we prepared a package `@vercel/otel` that helps you get started quickly.
-It's not extensible and you should configure OpenTelemetry manually if you need to customize your setup.
+오픈텔레메트리는 확장성이 뛰어나지만 제대로 설정하는것은 꽤 복잡할 수 있습니다. 그래서 우리는 빠르게 시작할 수 있도록 도와주는 `@vercel/otel` 패키지를 준비했습니다. 이 패키지는 확장성이 없으며, 설정을 사용자 정의해야하는 경우 오픈텔레메트리를 수동으로 구성해야 합니다.
 
-### Using `@vercel/otel`
+### `@vercel/otel` 사용하기
 
-To get started, you must install `@vercel/otel`:
+우선 `@vercel/otel`을 설치해야 합니다.
 
 ```bash filename="Terminal"
 npm install @vercel/otel
 ```
 
-Next, create a custom [`instrumentation.ts`](/docs/pages/building-your-application/optimizing/instrumentation) (or `.js`) file in the **root directory** of the project (or inside `src` folder if using one):
+다음으로, 프로젝트의 루트 디렉터리에(`src` 폴더를 사용한다면 그곳에) `instrumentation.ts`(또는 `.js`) 파일을 생성합니다.
 
 ```ts filename="your-project/instrumentation.ts" switcher
 import { registerOTel } from "@vercel/otel";
@@ -46,45 +40,28 @@ export function register() {
 }
 ```
 
-```js filename="your-project/instrumentation.js" switcher
-import { registerOTel } from "@vercel/otel";
-
-export function register() {
-  registerOTel("next-app");
-}
-```
-
-> **Good to know**
+> **토막 상식**
 >
-> - The `instrumentation` file should be in the root of your project and not inside the `app` or `pages` directory. If you're using the `src` folder, then place the file inside `src` alongside `pages` and `app`.
-> - If you use the [`pageExtensions` config option](/docs/pages/api-reference/next-config-js/pageExtensions) to add a suffix, you will also need to update the `instrumentation` filename to match.
-> - We have created a basic [with-opentelemetry](https://github.com/vercel/next.js/tree/canary/examples/with-opentelemetry) example that you can use.
+> - `instrumentation` 파일은 `app`이나 `pages`디렉터리가 아닌 프로젝트의 루트에 있어야 합니다. `src`폴더를 사용하는 경우`pages`, `app`과 함께 `src` 안에 위치시킵니다.
+> - [`pageExtensions` 구성 옵션](/docs/pages/api-reference/next-config-js/pageExtensions)을 사용하여 접미사를 추가하는 경우 `instrumentation` 파일 이름도 이에 일치하도록 업데이트해야 합니다.
+> - 참고하여 사용할 수 있는 [with-opentelemetry](https://github.com/vercel/next.js/tree/canary/examples/with-opentelemetry) 예시를 만들어뒀습니다.
 
-### Manual OpenTelemetry configuration
+### 오픈텔레메트리 수동 구성
 
-If our wrapper `@vercel/otel` doesn't suit your needs, you can configure OpenTelemetry manually.
+우리가 제공하는 `@vercel/otel` 래퍼가 필요한 요구사항을 충족시키지 못한다면 오픈텔레메트리를 수동으로 구성할 수 있습니다.
 
-Firstly you need to install OpenTelemetry packages:
+먼저, 오픈텔레메트리 패키지를 설치해야 합니다.
 
 ```bash filename="Terminal"
 npm install @opentelemetry/sdk-node @opentelemetry/resources @opentelemetry/semantic-conventions @opentelemetry/sdk-trace-node @opentelemetry/exporter-trace-otlp-http
 ```
 
-Now you can initialize `NodeSDK` in your `instrumentation.ts`.
-OpenTelemetry APIs are not compatible with edge runtime, so you need to make sure that you are importing them only when `process.env.NEXT_RUNTIME === 'nodejs'`. We recommend creating a new file `instrumentation.node.ts` which you conditionally import only when using node:
+다음으로, `instrumentation.ts`에서 `NodeSDK`를 초기화합니다. 오픈텔레메트리 API는 에지 런타임과 호환되지 않으므로 `process.env.NEXT_RUNTIME === 'nodejs'`일때만 조건부로 활성화해야 합니다. `instrumentation.node.ts` 파일을 새로 만들고, `node`를 사용할 때만 조건부로 가져오도록 하는것을 권장합니다.
 
 ```ts filename="instrumentation.ts" switcher
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./instrumentation.node.ts");
-  }
-}
-```
-
-```js filename="instrumentation.js" switcher
-export async function register() {
-  if (process.env.NEXT_RUNTIME === "nodejs") {
-    await import("./instrumentation.node.js");
   }
 }
 ```
@@ -105,24 +82,9 @@ const sdk = new NodeSDK({
 sdk.start();
 ```
 
-```js filename="instrumentation.node.js" switcher
-import { NodeSDK } from "@opentelemetry/sdk-node";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { Resource } from "@opentelemetry/resources";
-import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
-import { SimpleSpanProcessor } from "@opentelemetry/sdk-trace-node";
-
-const sdk = new NodeSDK({
-  resource: new Resource({
-    [SemanticResourceAttributes.SERVICE_NAME]: "next-app",
-  }),
-  spanProcessor: new SimpleSpanProcessor(new OTLPTraceExporter()),
-});
-sdk.start();
-```
-
 Doing this is equivalent to using `@vercel/otel`, but it's possible to modify and extend.
 For example, you could use `@opentelemetry/exporter-trace-otlp-grpc` instead of `@opentelemetry/exporter-trace-otlp-http` or you can specify more resource attributes.
+위 예시처럼만 하면 `@vercel/otel`을 사용하는것과 동일하지만, 여기에 더 많은 설정을 추가하거나 수정할 수 있습니다. 예를들어, `@opentelemetry/exporter-trace-otlp-grpc`를 `@opentelemetry/exporter-trace-otlp-http` 대신 사용하거나, 더 많은 리소스 속성을 지정할 수 있습니다.
 
 ## 계측 테스트하기
 

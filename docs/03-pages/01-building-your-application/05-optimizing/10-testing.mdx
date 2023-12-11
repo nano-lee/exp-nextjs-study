@@ -1,7 +1,7 @@
 ---
 sidebar_position: 10
-title: Testing
-description: Learn how to set up Next.js with three commonly used testing tools — Cypress, Playwright, Jest, and React Testing Library.
+title: 테스팅
+description: 일반적으로 사용되는 세가지 테스팅 도구인 Cypress, Playwright, Jest with React Testing Library를 사용하여 Next.js를 설정하는 방법을 알아봅시다.
 ---
 
 <details open>
@@ -14,29 +14,29 @@ description: Learn how to set up Next.js with three commonly used testing tools 
 
 </details>
 
-Learn how to set up Next.js with commonly used testing tools: [Cypress](#cypress), [Playwright](#playwright), and [Jest with React Testing Library](#jest-and-react-testing-library).
+보편적인 테스팅 툴인 [Cypress](#cypress), [Playwright](#playwright), [Jest with React Testing Library](#jest-and-react-testing-library)를 사용하여 Next.js를 설정하는 방법을 알아봅시다.
 
 ## Cypress
 
-Cypress is a test runner used for **End-to-End (E2E)** and **Component Testing**.
+Cypress는 **End-to-End (E2E)**와 **Component Testing**에 사용되는 테스트 툴입니다.
 
-### Quickstart
+### 빠른 시작
 
-You can use `create-next-app` with the [with-cypress example](https://github.com/vercel/next.js/tree/canary/examples/with-cypress) to quickly get started.
+`create-next-app`을 [with-cypress 예제](https://github.com/vercel/next.js/tree/canary/examples/with-cypress)로 사용하여 빠르게 시작할 수 있습니다.
 
 ```bash filename="Terminal"
 npx create-next-app@latest --example with-cypress with-cypress-app
 ```
 
-### Manual setup
+### 직접 설정하기
 
-To get started with Cypress, install the `cypress` package:
+Cypress를 시작하려면 먼저 `cypress` 패키지를 설치하세요
 
 ```bash filename="Terminal"
 npm install --save-dev cypress
 ```
 
-Add Cypress to the `package.json` scripts field:
+`package.json`에 Cypress 스크립트를 추가합니다.
 
 ```json filename="package.json"
 {
@@ -49,21 +49,21 @@ Add Cypress to the `package.json` scripts field:
 }
 ```
 
-Run Cypress for the first time to generate examples that use their recommended folder structure:
+Cypress를 최초 실행하면 권장하는 폴더 구조를 사용하는 예제가 생성됩니다.
 
 ```bash filename="Terminal"
 npm run cypress:open
 ```
 
-You can look through the generated examples and the [Writing Your First Test](https://docs.cypress.io/guides/getting-started/writing-your-first-test) section of the Cypress Documentation to help you get familiar with Cypress.
+생성된 예제와 Cypress 도큐멘테이션의 [Writing Your First Test](https://docs.cypress.io/guides/getting-started/writing-your-first-test) 섹션을 참고하면 Cypress에 익숙해지는 데 도움을 받을 수 있습니다.
 
-### Should I use E2E or Component Tests?
+### E2E와 컴포넌트 테스트 중 어떤걸 사용해야 하나요?
 
-The [Cypress docs contain a guide](https://docs.cypress.io/guides/core-concepts/testing-types) on the difference between these two types of tests and when it is appropriate to use each.
+[Cypress 문서](https://docs.cypress.io/guides/core-concepts/testing-types)에 두 테스트 타입의 차이점과 언제 어떤걸 사용해야 하는지에 대한 가이드가 있습니다.
 
-### Creating your first Cypress E2E test
+### 첫 번째 Cypress E2E 테스트 만들어보기
 
-Assuming the following two Next.js pages:
+다음 두 개의 Next.js 페이지가 있다고 가정합시다.
 
 ```jsx filename="pages/index.js"
 import Link from "next/link";
@@ -89,71 +89,71 @@ export default function About() {
 }
 ```
 
-Add a test to check your navigation is working correctly:
+navigation이 올바르게 작동하는지 확인하는 테스트를 추가해봅시다.
 
 ```js filename="cypress/e2e/app.cy.js"
 describe("Navigation", () => {
 	it("should navigate to the about page", () => {
-		// Start from the index page
+		// index page에서 시작합니다.
 		cy.visit("http://localhost:3000/");
 
-		// Find a link with an href attribute containing "about" and click it
+		// "about" 문자열을 포함하는 href 속성을 가진 링크를 찾아 클릭합니다.
 		cy.get('a[href*="about"]').click();
 
-		// The new url should include "/about"
+		// 새로운 url은 "/about"을 포함해야 합니다.
 		cy.url().should("include", "/about");
 
-		// The new page should contain an h1 with "About page"
+		// 새로운 페이지는 "About page"라는 h1을 포함해야 합니다.
 		cy.get("h1").contains("About Page");
 	});
 });
 ```
 
-You can use `cy.visit("/")` instead of `cy.visit("http://localhost:3000/")` if you add `baseUrl: 'http://localhost:3000'` to the `cypress.config.js` configuration file.
+`cypress.config.js` 설정 파일에 `baseUrl: 'https://localhost:3000'`을 추가해두면 `cy.visit("https://localhost:3000/")` 대신 `cy.visit("/")`을 사용할 수 있습니다.
 
-### Creating your first Cypress component test
+### 첫 번째 Cypress 컴포넌트 테스트 만들어보기
 
-Component tests build and mount a specific component without having to bundle your whole application or launch a server. This allows for more performant tests that still provide visual feedback and the same API used for Cypress E2E tests.
+컴포넌트 테스트는 전체 앱을 번들링하거나 서버를 실행할 필요 없이 특정 컴포넌트를 빌드하여 마운트하는 방식으로 이뤄집니다. 이는 성능이 더 좋은 테스트를 가능하게 하면서 E2E 테스트와 동일한 시각적 피드백과 API를 제공합니다.
 
-> **Good to know**: Since component tests do not launch a Next.js server, capabilities like `<Image />` and `getServerSideProps` which rely on a server being available will not function out-of-the-box. See the [Cypress Next.js docs](https://docs.cypress.io/guides/component-testing/react/overview#Nextjs) for examples of getting these features working within component tests.
+> **토막 상식**: 컴포넌트 테스트는 Next.js 서버를 실행하지 않기 때문에 `<Image />`나 `getServerSideProps`같이 서버에 의존적인 기능은 기본적으로 동작하지 않습니다. 컴포넌트 테스트에서 이러한 기능들을 작동시키는 방법은 [Cypress Next.js docs](https://docs.cypress.io/guides/component-testing/react/overview#Nextjs)를 참고하세요.
 
-Assuming the same components from the previous section, add a test to validate a component is rendering the expected output:
+이전 섹션과 동일한 컴포넌트라고 가정하고, 컴포넌트가 예상대로 렌더링하는지 검증하는 테스트를 추가해봅니다.
 
 ```jsx filename="pages/about.cy.js"
 import AboutPage from "./about.js";
 
 describe("<AboutPage />", () => {
 	it("should render and display expected content", () => {
-		// Mount the React component for the About page
+		// About 페이지 리액트 컴포넌트를 마운트합니다
 		cy.mount(<AboutPage />);
 
-		// The new page should contain an h1 with "About page"
+		// 새로운 페이지는 "About page"라는 h1을 포함해야 합니다.
 		cy.get("h1").contains("About Page");
 
-		// Validate that a link with the expected URL is present
-		// *Following* the link is better suited to an E2E test
+		// 의도한 URL을 가진 링크가 존재하는지 검증합니다.
+		// 링크 검증은 E2E 테스트에 더 적합합니다.
 		cy.get('a[href="/"]').should("be.visible");
 	});
 });
 ```
 
-### Running your Cypress tests
+### Cypress 테스트 실행하기
 
-#### E2E Tests
+#### E2E 테스트
 
-Since Cypress E2E tests are testing a real Next.js application they require the Next.js server to be running prior to starting Cypress. We recommend running your tests against your production code to more closely resemble how your application will behave.
+Cypress E2E 테스트는 실제 Next.js 앱을 테스트하기 때문에 Cypress를 실행하기 전에 Next.js 서버가 먼저 실행되어야 합니다. 앱이 어떻게 동작할지 더 명확히 확인하기 위에 프로덕션 코드를 테스트하는 것을 권장합니다.
 
-Run `npm run build` and `npm run start`, then run `npm run cypress -- --e2e` in another terminal window to start Cypress and run your E2E testing suite.
+`npm run build`와 `npm run start` 스크립트를 통해 Next.js 앱을 실행한 후 다른 터미널에서 `npm run cypress -- --e2e` 스크립트를 실행하여 Cypress E2E 테스트를 실행합니다.
 
-> **Good to know**: Alternatively, you can install the `start-server-and-test` package and add it to the `package.json` scripts field: `"test": "start-server-and-test start http://localhost:3000 cypress"` to start the Next.js production server in conjunction with Cypress. Remember to rebuild your application after new changes.
+> **토막 상식**: 또는 `start-server-and-test` 패키지를 설치하고 `package.json`에 `"test": "start-server-and-test start http://localhost:3000 cypress"` 스크립트를 추가하여 Next.js 프로덕션 서버와 Cypress를 한번에 실행할 수 있습니다. 새로운 변경사항이 있을 때마다 앱을 다시 빌드해야 하는 것을 잊지 마세요.
 
-#### Component Tests
+#### 컴포넌트 테스트
 
-Run `npm run cypress -- --component` to start Cypress and execute your component testing suite.
+`npm run cypress -- --component` 스크립트를 실행하여 Cypress 컴포넌트 테스트를 실행합니다.
 
-### Getting ready for Continuous Integration (CI)
+### CI를 위한 준비사항
 
-You will have noticed that running Cypress so far has opened an interactive browser which is not ideal for CI environments. You can also run Cypress headlessly using the `cypress run` command:
+지금까지의 방식으로는 Cypress가 대화형 브라우저를 실행시키기 떄문에 CI 환경에서는 실행하기 어렵다는 것을 깨달았을 것입니다. `cypress run` 명령어를 사용하면 Cypress를 헤드리스 모드로 실행할 수 있습니다.
 
 ```json filename="package.json"
 {
@@ -167,7 +167,7 @@ You will have noticed that running Cypress so far has opened an interactive brow
 }
 ```
 
-You can learn more about Cypress and Continuous Integration from these resources:
+Cypress와 CI에 대해 더 알아보려면 다음 리소스를 참고하세요.
 
 -   [Cypress Continuous Integration Docs](https://docs.cypress.io/guides/continuous-integration/introduction)
 -   [Cypress GitHub Actions Guide](https://on.cypress.io/github-actions)
@@ -176,27 +176,27 @@ You can learn more about Cypress and Continuous Integration from these resources
 
 ## Playwright
 
-Playwright is a testing framework that lets you automate Chromium, Firefox, and WebKit with a single API. You can use it to write **End-to-End (E2E)** and **Integration** tests across all platforms.
+Playwright는 Chromium, Firefox, WebKit을 하나의 API로 자동화할 수 있는 테스팅 프레임워크입니다. 모든 플랫폼에서 **End-to-End (E2E)**와 **통합** 테스트를 작성하는데 사용할 수 있습니다.
 
-### Quickstart
+### 빠른 시작
 
-The fastest way to get started is to use `create-next-app` with the [with-playwright example](https://github.com/vercel/next.js/tree/canary/examples/with-playwright). This will create a Next.js project complete with Playwright all set up.
+`create-next-app`을 [with-playwright 예제](https://github.com/vercel/next.js/tree/canary/examples/with-cypress)로 사용하여 빠르게 시작할 수 있습니다. 이는 Playwright가 모두 설정된 Next.js 프로젝트를 생성합니다.
 
 ```bash filename="Terminal"
 npx create-next-app@latest --example with-playwright with-playwright-app
 ```
 
-### Manual setup
+### 직접 설정하기
 
-You can also use `npm init playwright` to add Playwright to an existing `NPM` project.
+`npm init playwright`를 통해 기존 `NPM` 프로젝트에 Playwright를 추가할 수도 있습니다.
 
-To manually get started with Playwright, install the `@playwright/test` package:
+Playwright를 수동으로 시작하려면 `@playwright/test` 패키지를 설치하세요.
 
 ```bash filename="Terminal"
 npm install --save-dev @playwright/test
 ```
 
-Add Playwright to the `package.json` scripts field:
+`package.json`에 Playwright 스크립트를 추가합니다.
 
 ```json filename="package.json"
 {
@@ -209,9 +209,9 @@ Add Playwright to the `package.json` scripts field:
 }
 ```
 
-### Creating your first Playwright end-to-end test
+### 첫 번쨰 Playwright E2E 테스트 만들어보기
 
-Assuming the following two Next.js pages:
+다음 두 개의 Next.js 페이지가 있다고 가정합시다.
 
 ```jsx filename="pages/index.js"
 import Link from "next/link";
@@ -235,131 +235,118 @@ export default function About() {
 }
 ```
 
-Add a test to verify that your navigation is working correctly:
+navigation이 올바르게 작동하는지 확인하는 테스트를 추가해봅시다.
 
 ```ts filename="e2e/example.spec.ts" switcher
 import { test, expect } from "@playwright/test";
 
 test("should navigate to the about page", async ({ page }) => {
-	// Start from the index page (the baseURL is set via the webServer in the playwright.config.ts)
+	// index page에서 시작합니다.
 	await page.goto("http://localhost:3000/");
-	// Find an element with the text 'About Page' and click on it
+	// "About" 문자열을 포함하는 요소를 찾아 클릭합니다.
 	await page.click("text=About");
-	// The new URL should be "/about" (baseURL is used there)
+	// 새로운 url은 "/about"을 포함해야 합니다.
 	await expect(page).toHaveURL("http://localhost:3000/about");
-	// The new page should contain an h1 with "About Page"
+	// 새로운 페이지는 "About page"라는 h1을 포함해야 합니다.
 	await expect(page.locator("h1")).toContainText("About Page");
 });
 ```
 
-```js filename="e2e/example.spec.js" switcher
-import { test, expect } from "@playwright/test";
+`playwright.config.js` 설정 파일에 [`baseUrl: 'https://localhost:3000'`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url)을 추가해두면 `page.goto("https://localhost:3000/")` 대신 `page.goto("/")`를 사용할 수 있습니다.
 
-test("should navigate to the about page", async ({ page }) => {
-	// Start from the index page (the baseURL is set via the webServer in the playwright.config.ts)
-	await page.goto("http://localhost:3000/");
-	// Find an element with the text 'About Page' and click on it
-	await page.click("text=About");
-	// The new URL should be "/about" (baseURL is used there)
-	await expect(page).toHaveURL("http://localhost:3000/about");
-	// The new page should contain an h1 with "About Page"
-	await expect(page.locator("h1")).toContainText("About Page");
-});
-```
+### Playwright 테스트 실행하기
 
-You can use `page.goto("/")` instead of `page.goto("http://localhost:3000/")`, if you add [`"baseURL": "http://localhost:3000"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url) to the `playwright.config.ts` configuration file.
+Playwrigt는 실제 Next.js 앱을 테스트하기 때문에 Playwright를 실행하기 전에 Next.js 서버가 먼저 실행되어야 합니다. 앱이 어떻게 동작할지 더 명확히 확인하기 위에 프로덕션 코드를 테스트하는 것을 권장합니다.
 
-### Running your Playwright tests
+`npm run build`와 `npm run start` 스크립트를 통해 Next.js 앱을 실행한 후 다른 터미널에서 `npm run test:e2e` 스크립트를 실행하여 Playwright 테스트를 실행합니다.
 
-Since Playwright is testing a real Next.js application, it requires the Next.js server to be running prior to starting Playwright. It is recommended to run your tests against your production code to more closely resemble how your application will behave.
+> **토막 상식**: 또는 [`webServer`](https://playwright.dev/docs/test-webserver/) 기능을 사용하여 개발 서버가 시작되고 완전히 사용 가능할 때까지 Playwright가 기다리도록 할 수 있습니다.
 
-Run `npm run build` and `npm run start`, then run `npm run test:e2e` in another terminal window to run the Playwright tests.
+### CI를 위한 준비사항
 
-> **Good to know**: Alternatively, you can use the [`webServer`](https://playwright.dev/docs/test-webserver/) feature to let Playwright start the development server and wait until it's fully available.
+Playwright는 기본적으로 [헤드리스 모드](https://playwright.dev/docs/ci#running-headed)로 실행됩니다. 모든 Playwright 의존성을 설치하려면 `npx playwright install-deps`를 실행하세요.
 
-### Running Playwright on Continuous Integration (CI)
-
-Playwright will by default run your tests in the [headless mode](https://playwright.dev/docs/ci#running-headed). To install all the Playwright dependencies, run `npx playwright install-deps`.
-
-You can learn more about Playwright and Continuous Integration from these resources:
+Playwright와 CI에 대해 더 알아보려면 다음 리소스를 참고하세요.
 
 -   [Getting started with Playwright](https://playwright.dev/docs/intro)
 -   [Use a development server](https://playwright.dev/docs/test-webserver/)
 -   [Playwright on your CI provider](https://playwright.dev/docs/ci)
 -   [Playwright Discord](https://discord.com/invite/playwright-807756831384403968)
 
-## Jest and React Testing Library
+## Jest와 리액트 테스팅 라이브러리
 
-Jest and React Testing Library are frequently used together for **Unit Testing**. There are three ways you can start using Jest within your Next.js application:
+Jest와 리액트 테스팅 라이브러리는 **단위 테스팅**에 종종 함께 사용됩니다. Next.js 앱에서 Jest를 사용하는 세 가지 방법이 있습니다.
 
-1. Using one of our [quickstart examples](#quickstart-2)
-2. With the [Next.js Rust Compiler](#setting-up-jest-with-the-rust-compiler)
-3. With [Babel](#setting-up-jest-with-babel)
+1. 우리가 제공하는 [빠른 시작 예제](#quickstart-2) 중 하나 사용하기
+2. [Next.js 러스트 컴파일러](#setting-up-jest-with-the-rust-compiler)와 함께 사용하기
+3. [Babel](#setting-up-jest-with-babel)과 함께 사용하기
 
-The following sections will go through how you can set up Jest with each of these options:
+다음 섹션에서 각각의 옵션으로 Jest를 설정하는 방법을 알아봅시다.
 
-### Quickstart
+### 빠른 시작
 
-You can use `create-next-app` with the [with-jest](https://github.com/vercel/next.js/tree/canary/examples/with-jest) example to quickly get started with Jest and React Testing Library:
+`create-next-app`을 [with-jest 예제](https://github.com/vercel/next.js/tree/canary/examples/with-jest)로 사용하여 빠르게 시작할 수 있습니다.
 
 ```bash filename="Terminal"
 npx create-next-app@latest --example with-jest with-jest-app
 ```
 
-### Setting up Jest (with the Rust Compiler)
+### Jest 설정하기 (러스트 컴파일러 사용)
 
-Since the release of [Next.js 12](https://nextjs.org/blog/next-12), Next.js now has built-in configuration for Jest.
+[Next.js 12](https://nextjs.org/blog/next-12) 릴리즈부터 Next.js에는 Jest를 위한 설정이 기본으로 제공됩니다.
 
-To set up Jest, install `jest`, `jest-environment-jsdom`, `@testing-library/react`, `@testing-library/jest-dom`:
+Jest를 설정하려면 `jest`, `jest-environment-jsdom`, `@testing-library/react`, `@testing-library/jest-dom`을 설치하세요.
 
 ```bash filename="Terminal"
 npm install --save-dev jest jest-environment-jsdom @testing-library/react @testing-library/jest-dom
 ```
 
-Create a `jest.config.mjs` file in your project's root directory and add the following:
+프로젝트 루트 디렉터리에 `jest.config.mjs` 파일을 생성하고 다음 내용을 추가합니다.
 
 ```js filename="jest.config.mjs"
 import nextJest from "next/jest.js";
 
 const createJestConfig = nextJest({
-	// Provide the path to your Next.js app to load next.config.js and .env files in your test environment
+	// 테스트 환경에서 `next.config.js`와 `.env` 파일을 로드할 경로를 제공합니다.
 	dir: "./",
 });
 
-// Add any custom config to be passed to Jest
+// Jest에 전달할 커스텀 설정을 추가합니다.
 /** @type {import('jest').Config} */
 const config = {
-	// Add more setup options before each test is run
+	// 각 테스트를 실행하기 전에 추가할 더 많은 설정 옵션을 추가합니다.
 	// setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 
 	testEnvironment: "jest-environment-jsdom",
 };
 
-// createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
+// createJestConfig를 이런 식으로 내보내면 next/jest가 Next.js 설정을 비동기적으로 로드합니다.
 export default createJestConfig(config);
 ```
 
-Under the hood, `next/jest` is automatically configuring Jest for you, including:
+다음 요소들은 `next/jest`가 내부적으로 자동으로 설정합니다.
 
--   Setting up `transform` using [SWC](/docs/architecture/nextjs-compiler)
--   Auto mocking stylesheets (`.css`, `.module.css`, and their scss variants), image imports and [`next/font`](/docs/pages/building-your-application/optimizing/fonts)
--   Loading `.env` (and all variants) into `process.env`
--   Ignoring `node_modules` from test resolving and transforms
--   Ignoring `.next` from test resolving
--   Loading `next.config.js` for flags that enable SWC transforms
+-   [SWC](/docs/architecture/nextjs-compiler)를 사용한 `transform` 설정
+-   스타일시트 (`.css`, `.module.css`, scss 변수), 이미지 임포트, [`next/font`](/docs/pages/building-your-application/optimizing/fonts)의 자동 모킹
+-   `.env` (+ 모든 변수)를 `process.env`에 로드
+-   테스트에서 `node_modules` 무시
+-   테스트에서 `.next` 무시
+-   SWC transform을 활성화하는 플래그를 위해 `next.config.js` 로드
 
 > **Good to know**: To test environment variables directly, load them manually in a separate setup script or in your `jest.config.js` file. For more information, please see [Test Environment Variables](/docs/pages/building-your-application/configuring/environment-variables#test-environment-variables).
 
-### Setting up Jest (with Babel)
+> **토막 상식**: 환경 변수를 직접 테스트하려면 별도의 설정 스크립트나 `jest.config.js` 파일에서 이를 수등으로 로드해야 합니다. 자세한 내용은 [환경 변수 테스트](/docs/pages/building-your-application/configuring/environment-variables#test-environment-variables)를 참고하세요.
 
-If you opt out of the [Rust Compiler](/docs/architecture/nextjs-compiler), you will need to manually configure Jest and install `babel-jest` and `identity-obj-proxy` in addition to the packages above.
+### Jest 설정하기 (바벨 사용)
 
-Here are the recommended options to configure Jest for Next.js:
+[러스트 컴파일러](/docs/architecture/nextjs-compiler)룰 사용하지 않는 경우 수동으로 Jest를 설정하고 `babel-jest`와 `identity-obj-proxy` 패키지를 추가로 설치해야 합니다.
+
+다음은 Next.js에서 Jest를 구성하는 권장 옵션입니다.
 
 ```js filename="jest.config.js"
 module.exports = {
 	collectCoverage: true,
-	// on node 14.x coverage provider v8 offers good speed and more or less good report
+	// node 14.x에서 v8 coverageProvider는 좋은 속도와 양호한 보고서를 제공합니다.
 	coverageProvider: "v8",
 	collectCoverageFrom: [
 		"**/*.{js,jsx,ts,tsx}",
@@ -385,12 +372,12 @@ module.exports = {
 		// Handle module aliases
 		"^@/components/(.*)$": "<rootDir>/components/$1",
 	},
-	// Add more setup options before each test is run
+	// 각 테스트를 실행하기 전에 추가할 더 많은 설정 옵션을 추가합니다.
 	// setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
 	testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/.next/"],
 	testEnvironment: "jsdom",
 	transform: {
-		// Use babel-jest to transpile tests with the next/babel preset
+		// babel-jest 트랜스파일을 next/babel 프리셋과 함께 사용하세요
 		// https://jestjs.io/docs/configuration#transform-objectstring-pathtotransformer--pathtotransformer-object
 		"^.+\\.(js|jsx|ts|tsx)$": ["babel-jest", { presets: ["next/babel"] }],
 	},
@@ -401,11 +388,13 @@ module.exports = {
 };
 ```
 
-You can learn more about each configuration option in the [Jest docs](https://jestjs.io/docs/configuration).
+각 구성 옵션에 대한 자세한 내용은 [Jest 문서](https://jestjs.io/docs/configuration)를 참고하세요.
 
-**Handling stylesheets and image imports**
+**스타일시트 및 이미지 임포트 핸들링**
 
 Stylesheets and images aren't used in the tests but importing them may cause errors, so they will need to be mocked. Create the mock files referenced in the configuration above - `fileMock.js` and `styleMock.js` - inside a `__mocks__` directory:
+
+스타일시트와 이미지는 테스트에 사용되지 않지만 임포트에서 에러가 발생할 수 있으므로 모킹이 필요합니다. 위에서 설정한대로 `__mocks__` 디렉터리 안애 `fileMock.js`와 `styleMock.js`를 생성하세요.
 
 ```js filename="__mocks__/fileMock.js"
 module.exports = {
@@ -420,17 +409,17 @@ module.exports = {
 module.exports = {};
 ```
 
-For more information on handling static assets, please refer to the [Jest Docs](https://jestjs.io/docs/webpack#handling-static-assets).
+정적 애셋에 대한 자세한 내용은 [Jest 문서](https://jestjs.io/docs/webpack#handling-static-assets)를 참고하세요.
 
-**Optional: Extend Jest with custom matchers**
+**선택사항: 커스텀 매쳐로 Jest 확장하기**
 
-`@testing-library/jest-dom` includes a set of convenient [custom matchers](https://github.com/testing-library/jest-dom#custom-matchers) such as `.toBeInTheDocument()` making it easier to write tests. You can import the custom matchers for every test by adding the following option to the Jest configuration file:
+`@testing-library/jest-dom`에는 `.toBeInTheDocument()`와 같이 테스트 작성을 도와주는 편리한 [커스텀 매쳐](https://github.com/testing-library/jest-dom#custom-matchers)가 있습니다. Jest 설정 파일에 아래 옵션을 추가하면 모든 테스트에서 커스텀 매쳐를 사용할 수 있습니다.
 
 ```js filename="jest.config.js"
 setupFilesAfterEnv: ["<rootDir>/jest.setup.js"];
 ```
 
-Then, inside `jest.setup.js`, add the following import:
+그런 다음 `jest.setup.js`에 다음 import를 추가하세요.
 
 ```js filename="jest.setup.js"
 import "@testing-library/jest-dom";
@@ -438,11 +427,11 @@ import "@testing-library/jest-dom";
 
 > [`extend-expect` was removed in `v6.0`](https://github.com/testing-library/jest-dom/releases/tag/v6.0.0), so if you are using `@testing-library/jest-dom` before version 6, you will need to import `@testing-library/jest-dom/extend-expect` instead.
 
-If you need to add more setup options before each test, it's common to add them to the `jest.setup.js` file above.
+각 테스트 전에 더 많은 설정 옵션을 추가해야 하는 경우 위의 `jest.setup.js` 파일에 추가하는 것이 일반적입니다.
 
-**Optional: Absolute Imports and Module Path Aliases**
+**선택사항: 절대경로 임포트와 모듈 경로 별칭**
 
-If your project is using [Module Path Aliases](/docs/pages/building-your-application/configuring/absolute-imports-and-module-aliases), you will need to configure Jest to resolve the imports by matching the paths option in the `jsconfig.json` file with the `moduleNameMapper` option in the `jest.config.js` file. For example:
+프로젝트에서 [모듈 경로 별칭](/docs/pages/building-your-application/configuring/absolute-imports-and-module-aliases)을 사용하는 경우 `jsconfig.json` 파일에 있는 옵션을 `jest.config.js` 파일의 `moduleNameMapper` 옵션과 일치시켜서 Jest가 이를 해석할 수 있도록 해야합니다.
 
 ```json filename="tsconfig.json or jsconfig.json"
 {
@@ -463,11 +452,11 @@ moduleNameMapper: {
 }
 ```
 
-### Creating your tests:
+### 직접 테스트 작성해보기
 
-**Add a test script to package.json**
+**package.json에 테스트 스크립트 추가하기**
 
-Add the Jest executable in watch mode to the `package.json` scripts:
+`package.json`에 Jest 실행 스크립트를 watch 모드로 추가합니다.
 
 ```json filename="package.json"
 {
@@ -480,9 +469,9 @@ Add the Jest executable in watch mode to the `package.json` scripts:
 }
 ```
 
-`jest --watch` will re-run tests when a file is changed. For more Jest CLI options, please refer to the [Jest Docs](https://jestjs.io/docs/cli#reference).
+`jest --watch` 스크립트는 파일이 변경되면 테스트를 다시 실행합니다. 더 많은 Jest CLI 옵션은 [Jest 문서](https://jestjs.io/docs/cli#reference)를 참고하세요.
 
-**Create your first tests**
+**첫 번째 테스트 작성하기**
 
 Your project is now ready to run tests. Follow Jest's convention by adding tests to the `__tests__` folder in your project's root directory.
 
