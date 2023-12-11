@@ -1,8 +1,174 @@
 ---
 sidebar_position: 11
-title: Third Party Libraries
-description: Optimize the performance of third-party libraries in your application with the `@next/third-parties` package.
-source: app/building-your-application/optimizing/third-party-libraries
+title: 써드파티 라이브러리
+description: 써드파티 라이브러리의 성능을 최적화하기 위해 `@next/third-parties` 패키지를 사용하세요.
 ---
 
-{/* DO NOT EDIT. The content of this doc is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `Content` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
+**`@next/third-parties`** 라이브러리는 Next.js 앱에서 유명한 써드파티 라이브러리를 사용할 때 성능과 개발자 경험을 향상시킬 수 있는 컴포넌트와 유틸리티를 제공합니다.
+
+> **토막 상식**: `@next/third-parties`는 아직 개발중인 **실험적인** 라이브러리입니다. 현재 더 많은 써드 파티 라이브러리를 추가하고 있습니다.
+
+`@next/third-parties`에서 제공하는 모든 써드파티 통합 기능은 성능과 사용자 편의성을 위해 최적화되었습니다.
+
+## 시작하기
+
+먼저 `@next/third-parties` 라이브러리를 설치하세요.
+
+```bash filename="Terminal"
+npm install @next/third-parties
+```
+
+## 구글 써드파티
+
+모든 구글 써드파티 라이브러리는 `@next/third-parties/google`에서 가져올 수 있습니다.
+
+### 구글 태그 매니저 (GTM)
+
+`GoogleTagManager` 컴포넌트는 페이지에 [구글 태그 매니저](https://developers.google.com/tag-platform/tag-manager) 컨테이너를 초기화하는데 사용할 수 있습니다. 기본적으로 페이지가 하이드레이션된 후에 초기화를 위한 인라인 스크립트를 가져옵니다.
+
+모든 경로에서 구글 태그 매니저를 로드하려면 이 컴포넌트를 커스텀 `_app` 파일에 직접 포함시키세요.
+
+```jsx filename="pages/_app.js"
+import { GoogleTagManager } from "@next/third-parties/google";
+
+export default function MyApp({ Component, pageProps }) {
+	return (
+		<>
+			<Component {...pageProps} />
+			<GoogleTagManager gtmId="GTM-XYZ" />
+		</>
+	);
+}
+```
+
+단일 경로에서 구글 태그 매니저를 로드하려면 로드가 필요한 각 페이지에 이 컴포넌트를 포함시키세요.
+
+```jsx filename="pages/index.js"
+import { GoogleTagManager } from "@next/third-parties/google";
+
+export default function Page() {
+	return <GoogleTagManager gtmId="GTM-XYZ" />;
+}
+```
+
+> **Nano's Comment**
+>
+> EXP Site `_document.jsx`에서 포함시키는 아래 스크립트에 대한 대안으로 보입니다.
+>
+> ```js
+> <noscript>
+> 	<iframe
+> 		title="Google Tag Manager"
+> 		src="https://www.googletagmanager.com/ns.html?id=GTM-XYZ"
+> 		height="0"
+> 		width="0"
+> 		style={{ display: "none", visibility: "hidden" }}
+> 		sandbox="allow-scripts"
+> 	/>
+> </noscript>
+> ```
+
+#### 이벤트 보내기
+
+`sendGTMEvent` 함수는 `dataLayer` 객체를 사용하여 페이지에서 이벤트를 보내 사용자 상호작용을 추적하는 데 사용할 수 있습니다. 이 함수가 작동하려면 `<GoogleTagManager />` 컴포넌트가 부모 레이아웃, 페이지, 컴포넌트 또는 동일한 파일에 직접 포함되어야 합니다.
+
+> **Nano's Comment**
+>
+> `dataLayer`에 이벤트를 추가하기 위해 `pushDataLayer` 유틸 함수를 직접 구현했는데, 그냥 이걸 사용하면 되는 것 같습니다..?
+
+```jsx filename="pages/index.js"
+import { sendGTMEvent } from "@next/third-parties/google";
+
+export function EventButton() {
+	return (
+		<div>
+			<button
+				onClick={() =>
+					sendGTMEvent({ event: "buttonClicked", value: "xyz" })
+				}
+			>
+				Send Event
+			</button>
+		</div>
+	);
+}
+```
+
+함수에 전달할 수 있는 다양한 변수와 이벤트에 대해 알아보려면 [Tag Manager](https://developers.google.com/tag-platform/tag-manager/datalayer) 문서를 참고하세요.
+
+#### 옵션
+
+구글 태그 매니저에 전달 가능한 옵션 목록입니다. 전체 옵션 목록은 [구글 태그 매니저 문서](https://developers.google.com/tag-platform/tag-manager/datalayer)를 참고하세요.
+
+| Name            | Type     | Description                                                  |
+| --------------- | -------- | ------------------------------------------------------------ |
+| `gtmId`         | Required | GTM 컨테이너 아이디                                          |
+| `dataLayer`     | Optional | 컨테이너 초기화에 사용할 데이터 레이어 배열. 기본값: 빈 배열 |
+| `dataLayerName` | Optional | 데이터 레이어의 이름. 기본값: `dataLayer`                    |
+| `auth`          | Optional | 환경 구성을 위한 인증 파라미터 (`gtm_auth`)                  |
+| `preview`       | Optional | 환경 구성을 위한 미리보기 파라미러 (`gtm_preview`)           |
+
+### 구글 지도
+
+`GoogleMapsEmbed` 컴포넌트는 [구글 지도](https://developers.google.com/maps/documentation/embed/embedding-map)를 페이지에 추가하는데 사용할 수 있습니다. 기본적으로 `loading` 속성을 통해 레이지 로딩을 사용합니다.
+
+```jsx filename="pages/index.js"
+import { GoogleMapsEmbed } from "@next/third-parties/google";
+
+export default function Page() {
+	return (
+		<GoogleMapsEmbed
+			apiKey="XYZ"
+			height={200}
+			width="100%"
+			mode="place"
+			q="Brooklyn+Bridge,New+York,NY"
+		/>
+	);
+}
+```
+
+#### 옵션
+
+구글 지도에 전달 가능한 옵션 목록입니다. 전체 옵션 목록은 [구글 지도 문서](https://developers.google.com/maps/documentation/embed/embedding-map)를 참고하세요.
+
+| Name              | Type     | Description                                                                                          |
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| `apiKey`          | Required | API 키                                                                                               |
+| `mode`            | Required | [지도 모드](https://developers.google.com/maps/documentation/embed/embedding-map#choosing_map_modes) |
+| `height`          | Optional | 지도의 높이. 기본값: `auto`                                                                          |
+| `width`           | Optional | 지도의 너비. 기본값: `auto`                                                                          |
+| `style`           | Optional | iframe에 전달할 스타일                                                                               |
+| `allowfullscreen` | Optional | 지도의 특정 부분이 전체화면으로 표시되도록 허용하는 속성                                             |
+| `loading`         | Optional | 레이지 로딩이 기본값입니다. 지도가 항상 바로 노출된다면 값을 변경하는걸 고려하세요.                  |
+| `q`               | Optional | 지도 마커 위치 _지도 모드에 따라 필수값이 될 수 있습니다_                                            |
+| `center`          | Optional | 지도 뷰 중심 정의                                                                                    |
+| `zoom`            | Optional | 지도 확대/축소 초기값 설정                                                                           |
+| `maptype`         | Optional | 지도 타입 설정                                                                                       |
+| `language`        | Optional | 지도에 표시할 UI 요소 언어 정의                                                                      |
+| `region`          | Optional | 정치적 민감도에 따라 적절한 국경과 라벨 정의                                                         |
+
+### 유튜브
+
+`YouTubeEmbed` 컴포넌트는 유튜브 영상을 페이지에 추가하는데 사용할 수 있습니다. 내부적으로 [`lite-youtube-embed`]를 사용하여 더 빠르게 로드합니다.
+
+```jsx filename="pages/index.js"
+import { YouTubeEmbed } from "@next/third-parties/google";
+
+export default function Page() {
+	return (
+		<YouTubeEmbed videoid="ogfYd705cRs" height={400} params="controls=0" />
+	);
+}
+```
+
+#### 옵션
+
+| Name        | Type     | Description                                                                                                                                                                                               |
+| ----------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `videoid`   | Required | 유튜브 영상 아이디                                                                                                                                                                                        |
+| `width`     | Optional | 영상 컨테이너 너비. 기본값: `auto`                                                                                                                                                                        |
+| `height`    | Optional | 영상 컨테이너 높이. 기본값: `auto`                                                                                                                                                                        |
+| `playlabel` | Optional | 접근성을 위해 재생 버튼에 숨겨진 레이블 표시 여부                                                                                                                                                         |
+| `params`    | Optional | [이곳](https://developers.google.com/youtube/player_parameters#Parameters)에 정의된 영상 플레이어 파라미터. <br/> 파라미터는 쿼리 파라미터 문자열로 전달. <br/> 예: `params="controls=0&start=10&end=30"` |
+| `style`     | Optional | 영상 컨테이너에 적용할 스타일                                                                                                                                                                             |

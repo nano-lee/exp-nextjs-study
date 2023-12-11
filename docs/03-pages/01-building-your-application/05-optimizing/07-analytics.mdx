@@ -1,8 +1,456 @@
 ---
 sidebar_position: 7
-title: Analytics
-description: Measure and track page performance using Next.js Speed Insights
-source: app/building-your-application/optimizing/analytics
+title: 분석 (Analytics)
+description: Next.js Speed Insights를 사용하여 앱의 성능을 측정하고 추적합니다.
 ---
 
-{/* DO NOT EDIT. The content of this doc is generated from the source above. To edit the content of this page, navigate to the source page in your editor. You can use the `Content` component to add content that is specific to the Pages Router. Any shared content should not be wrapped in a component. */}
+Next.js는 성능 지표를 측정하고 리포트하는 기능을 내장하고 있습니다. `useReportWebVitals` 훅을 사용하여 직접 리포트를 관리하거나, Vercel에서 제공하는 [관리형 서비스](https://vercel.com/analytics?utm_source=next-site&utm_medium=docs&utm_campaign=next-website)를 통해 자동으로 지표를 수집하고 시각화할 수 있습니다.
+
+## 직접 관리하기
+
+```jsx filename="pages/_app.js"
+import { useReportWebVitals } from "next/web-vitals";
+
+function MyApp({ Component, pageProps }) {
+	useReportWebVitals((metric) => {
+		console.log(metric);
+	});
+
+	return <Component {...pageProps} />;
+}
+```
+
+자세한 내용은 [API 레퍼런스](/docs/pages/api-reference/functions/use-report-web-vitals)를 참고하세요.
+
+> **Nano's comment**
+>
+> `useReportWebVitals`훅은 `next@13.3.0` 버전부터 사용할 수 있습니다. (EXP는 `13.2.4` 버전 사용중)
+>
+> ex) EXP 타운홀
+>
+> ```json
+> {
+> 	"name": "FCP",
+> 	"value": 2400.5,
+> 	"rating": "needs-improvement",
+> 	"delta": 2400.5,
+> 	"entries": [
+> 		{
+> 			"name": "first-contentful-paint",
+> 			"entryType": "paint",
+> 			"startTime": 2400.5,
+> 			"duration": 0
+> 		}
+> 	],
+> 	"id": "v3-1701755117978-7292282098273",
+> 	"navigationType": "reload"
+> }
+> ```
+>
+> ```json
+> {
+> 	"name": "TTFB",
+> 	"value": 358,
+> 	"rating": "good",
+> 	"delta": 358,
+> 	"entries": [
+> 		{
+> 			"name": "https://nano-exp-site-eohxr.dev.goorm.io/organization/org_Tfz7pd8BrI7w4DVWae/dashboard#/town-hall",
+> 			"entryType": "navigation",
+> 			"startTime": 0,
+> 			"duration": 2348.4000000059605,
+> 			"initiatorType": "navigation",
+> 			"deliveryType": "",
+> 			"nextHopProtocol": "http/1.1",
+> 			"renderBlockingStatus": "non-blocking",
+> 			"workerStart": 0,
+> 			"redirectStart": 0,
+> 			"redirectEnd": 0,
+> 			"fetchStart": 2.5,
+> 			"domainLookupStart": 2.5,
+> 			"domainLookupEnd": 2.5,
+> 			"connectStart": 2.5,
+> 			"secureConnectionStart": 2.5,
+> 			"connectEnd": 2.5,
+> 			"requestStart": 4.5,
+> 			"responseStart": 358,
+> 			"firstInterimResponseStart": 0,
+> 			"responseEnd": 358.70000000298023,
+> 			"transferSize": 33786,
+> 			"encodedBodySize": 33486,
+> 			"decodedBodySize": 121929,
+> 			"responseStatus": 200,
+> 			"serverTiming": [],
+> 			"unloadEventStart": 361.20000000298023,
+> 			"unloadEventEnd": 361.20000000298023,
+> 			"domInteractive": 518,
+> 			"domContentLoadedEventStart": 2250.0999999940395,
+> 			"domContentLoadedEventEnd": 2250.0999999940395,
+> 			"domComplete": 2348.2999999970198,
+> 			"loadEventStart": 2348.4000000059605,
+> 			"loadEventEnd": 2348.4000000059605,
+> 			"type": "reload",
+> 			"redirectCount": 0,
+> 			"activationStart": 0,
+> 			"criticalCHRestart": 0
+> 		}
+> 	],
+> 	"id": "v3-1701755117979-1016657581622",
+> 	"navigationType": "reload"
+> }
+> ```
+>
+> ```json
+> {
+> 	"name": "CLS",
+> 	"value": 0.044698746434746556,
+> 	"rating": "good",
+> 	"delta": 0.044698746434746556,
+> 	"entries": [
+> 		{
+> 			"name": "",
+> 			"entryType": "layout-shift",
+> 			"startTime": 3924.2000000029802,
+> 			"duration": 0,
+> 			"value": 0.04380000139597052,
+> 			"hadRecentInput": false,
+> 			"lastInputTime": 0,
+> 			"sources": [
+> 				{
+> 					"previousRect": {
+> 						"x": 970,
+> 						"y": 577,
+> 						"width": 400,
+> 						"height": 343,
+> 						"top": 577,
+> 						"right": 1370,
+> 						"bottom": 920,
+> 						"left": 970
+> 					},
+> 					"currentRect": {
+> 						"x": 970,
+> 						"y": 262,
+> 						"width": 400,
+> 						"height": 343,
+> 						"top": 262,
+> 						"right": 1370,
+> 						"bottom": 605,
+> 						"left": 970
+> 					}
+> 				}
+> 			]
+> 		},
+> 		{
+> 			"name": "",
+> 			"entryType": "layout-shift",
+> 			"startTime": 3950.4000000059605,
+> 			"duration": 0,
+> 			"value": 0.0005659956758767185,
+> 			"hadRecentInput": false,
+> 			"lastInputTime": 0,
+> 			"sources": [
+> 				{
+> 					"previousRect": {
+> 						"x": 405,
+> 						"y": 356,
+> 						"width": 496,
+> 						"height": 21,
+> 						"top": 356,
+> 						"right": 901,
+> 						"bottom": 377,
+> 						"left": 405
+> 					},
+> 					"currentRect": {
+> 						"x": 405,
+> 						"y": 344,
+> 						"width": 496,
+> 						"height": 45,
+> 						"top": 344,
+> 						"right": 901,
+> 						"bottom": 389,
+> 						"left": 405
+> 					}
+> 				},
+> 				{
+> 					"previousRect": {
+> 						"x": 405,
+> 						"y": 425,
+> 						"width": 496,
+> 						"height": 21,
+> 						"top": 425,
+> 						"right": 901,
+> 						"bottom": 446,
+> 						"left": 405
+> 					},
+> 					"currentRect": {
+> 						"x": 405,
+> 						"y": 413,
+> 						"width": 496,
+> 						"height": 45,
+> 						"top": 413,
+> 						"right": 901,
+> 						"bottom": 458,
+> 						"left": 405
+> 					}
+> 				},
+> 				{
+> 					"previousRect": {
+> 						"x": 405,
+> 						"y": 494,
+> 						"width": 496,
+> 						"height": 21,
+> 						"top": 494,
+> 						"right": 901,
+> 						"bottom": 515,
+> 						"left": 405
+> 					},
+> 					"currentRect": {
+> 						"x": 405,
+> 						"y": 482,
+> 						"width": 496,
+> 						"height": 45,
+> 						"top": 482,
+> 						"right": 901,
+> 						"bottom": 527,
+> 						"left": 405
+> 					}
+> 				},
+> 				{
+> 					"previousRect": {
+> 						"x": 405,
+> 						"y": 563,
+> 						"width": 496,
+> 						"height": 21,
+> 						"top": 563,
+> 						"right": 901,
+> 						"bottom": 584,
+> 						"left": 405
+> 					},
+> 					"currentRect": {
+> 						"x": 405,
+> 						"y": 551,
+> 						"width": 496,
+> 						"height": 45,
+> 						"top": 551,
+> 						"right": 901,
+> 						"bottom": 596,
+> 						"left": 405
+> 					}
+> 				}
+> 			]
+> 		},
+> 		{
+> 			"name": "",
+> 			"entryType": "layout-shift",
+> 			"startTime": 4025.2000000029802,
+> 			"duration": 0,
+> 			"value": 0.000005628206142615573,
+> 			"hadRecentInput": false,
+> 			"lastInputTime": 0,
+> 			"sources": [
+> 				{
+> 					"previousRect": {
+> 						"x": 598,
+> 						"y": 889,
+> 						"width": 104,
+> 						"height": 22,
+> 						"top": 889,
+> 						"right": 702,
+> 						"bottom": 911,
+> 						"left": 598
+> 					},
+> 					"currentRect": {
+> 						"x": 603,
+> 						"y": 889,
+> 						"width": 99,
+> 						"height": 22,
+> 						"top": 889,
+> 						"right": 702,
+> 						"bottom": 911,
+> 						"left": 603
+> 					}
+> 				}
+> 			]
+> 		},
+> 		{
+> 			"name": "",
+> 			"entryType": "layout-shift",
+> 			"startTime": 4099.79999999702,
+> 			"duration": 0,
+> 			"value": 0.0003271211567567056,
+> 			"hadRecentInput": false,
+> 			"lastInputTime": 0,
+> 			"sources": [
+> 				{
+> 					"previousRect": {
+> 						"x": 970,
+> 						"y": 625,
+> 						"width": 400,
+> 						"height": 252,
+> 						"top": 625,
+> 						"right": 1370,
+> 						"bottom": 877,
+> 						"left": 970
+> 					},
+> 					"currentRect": {
+> 						"x": 970,
+> 						"y": 619,
+> 						"width": 400,
+> 						"height": 252,
+> 						"top": 619,
+> 						"right": 1370,
+> 						"bottom": 871,
+> 						"left": 970
+> 					}
+> 				}
+> 			]
+> 		}
+> 	],
+> 	"id": "v3-1701755117978-9318892406797",
+> 	"navigationType": "reload"
+> }
+> ```
+>
+> ```json
+> {
+> 	"name": "LCP",
+> 	"value": 26000.09999999404,
+> 	"rating": "poor",
+> 	"delta": 26000.09999999404,
+> 	"entries": [
+> 		{
+> 			"name": "",
+> 			"entryType": "largest-contentful-paint",
+> 			"startTime": 26000.09999999404,
+> 			"duration": 0,
+> 			"size": 204660,
+> 			"renderTime": 26000.09999999404,
+> 			"loadTime": 0,
+> 			"firstAnimatedFrameTime": 0,
+> 			"id": "",
+> 			"url": ""
+> 		}
+> 	],
+> 	"id": "v3-1701755117978-1112947008479",
+> 	"navigationType": "reload"
+> }
+> ```
+
+## 웹 바이탈 (Web Vitals)
+
+[웹 바이탈](https://web.dev/vitals/)은 웹 페이지의 사용자 경험을 파악하기 위한 유용한 지표들입니다. `Next.js`에는 다음 웹 바이탈이 모두 포함되어 있습니다.
+
+-   [Time to First Byte](https://developer.mozilla.org/docs/Glossary/Time_to_first_byte) (TTFB)
+    -   브라우저가 페이지를 요청한 시점과 서버로부터 첫 번째 정보 바이트를 수신한 시점 사이의 시간
+-   [First Contentful Paint](https://developer.mozilla.org/docs/Glossary/First_contentful_paint) (FCP)
+    -   브라우저가 DOM에서 첫 번째 콘텐츠 비트(텍스트, 이미지, 비디오, SVG 등)를 렌더링한 시점
+-   [Largest Contentful Paint](https://web.dev/lcp/) (LCP)
+    -   페이지가 처음 로드되기 시작한 시점을 기준으로 표시 영역 내에 표시되는 가장 큰 이미지 또는 텍스트 블록의 렌더링 시간
+-   [First Input Delay](https://web.dev/fid/) (FID)
+    -   사용자가 청므 페이지와 상호작용(링크 클릭, 버튼 탭, js 컨트롤 사용 등)한 시점부터 브라우저가 해당 상호작용에 대한 응답으로 이벤트 핸들러 처리를 실제로 시작할 수 있는 시점까지의 시간
+-   [Cumulative Layout Shift](https://web.dev/cls/) (CLS)
+    -   페이지의 전체 수명 동안 발생하는 모든 예상치 못한 레이아웃 변경에 관한 레이아웃 변경 점수
+-   [Interaction to Next Paint](https://web.dev/inp/) (INP)
+    -   사용자가 페이지를 방문하는 전체 기간에 발생하는 모든 클릭, 탭, 키보드 상호작용의 지연 시간을 관찰하여 사용자 상호작용에 대한 페이지의 전반적인 응답성을 평가하는 측정항목. 대부분의 경우 최악의 지연 시간이 발생한 상호작용이 보고됨
+
+`name` 속성을 사용하여 지표를 처리할 수 있습니다.
+
+```jsx filename="pages/_app.js"
+import { useReportWebVitals } from "next/web-vitals";
+
+function MyApp({ Component, pageProps }) {
+	useReportWebVitals((metric) => {
+		switch (metric.name) {
+			case "FCP": {
+				// handle FCP results
+			}
+			case "LCP": {
+				// handle LCP results
+			}
+			// ...
+		}
+	});
+
+	return <Component {...pageProps} />;
+}
+```
+
+## 커스텀 지표
+
+위에 나열된 핵심 지표 외에도 페이지 하이드레이션과 렌더링에 걸리는 시간을 측정하는 커스텀 지표가 있습니다.
+
+-   `Next.js-hydration`: 페이지가 하이드레이션을 시작하고 완료하는 데 걸리는 시간 (ms)
+-   `Next.js-route-change-to-render`: 경로 변경 후 페이지가 렌더링을 시작하는 데 걸리는 시간 (ms)
+-   `Next.js-render`: 경로 변경 후 페이지가 렌더링을 완료하는 데 걸리는 시간 (ms)
+
+위 지표의 모든 결과는 따로 처리할 수 있습니다.
+
+```js
+export function reportWebVitals(metric) {
+	switch (metric.name) {
+		case "Next.js-hydration":
+			// handle hydration results
+			break;
+		case "Next.js-route-change-to-render":
+			// handle route-change to render results
+			break;
+		case "Next.js-render":
+			// handle render results
+			break;
+		default:
+			break;
+	}
+}
+```
+
+위 지표들은 [User Timing API](https://caniuse.com/#feat=user-timing)를 지원하는 모든 브라우저에서 측정 가능합니다.
+
+## 외부 시스템으로 측정 결과 보내기
+
+측정 결과를 외부 시스템으로 전송하여 실제 사용자 경험을 모니터링할 수 있습니다.
+
+```js
+useReportWebVitals((metric) => {
+	const body = JSON.stringify(metric);
+	const url = "https://example.com/analytics";
+
+	// Use `navigator.sendBeacon()` if available, falling back to `fetch()`.
+	if (navigator.sendBeacon) {
+		navigator.sendBeacon(url, body);
+	} else {
+		fetch(url, { body, method: "POST", keepalive: true });
+	}
+});
+```
+
+> **Nano's Comment**
+>
+> `navigator.sendBeacon`은 페이지가 언로드될 때 서버에 데이터를 비동기적으로 보낼 수 있게 해주는 메서드입니다. 이 API 특히 페이지나 문서가 닫힐 때 통계나 분석 정보를 서버에 전송하는 데 유용합니다. 주요 특징은 다음과 같습니다.
+>
+> 1. **비동기 전송**: 데이터를 비동기적으로 전송합니다. 따라서 페이지의 언로드 과정을 차단하지 않고 데이터를 서버에 전송할 수 있습니다.
+> 2. **언로드 시 사용**: `unload` 이벤트와 `beforeunload` 이벤트가 발생할 떄 데이터를 전송합니다. 따라서 페이지가 닫히거나 사용자가 다른 페이지로 이동할 때 데이터를 보낼 수 있습니다.
+> 3. **적은 양의 데이터**: 일반적으로 적은 양의 데이터를 전송하는 데 적합합니다. 큰 데이터를 전송하는 데는 적합하지 않을 수 있습니다.
+> 4. **반환값**: 데이터가 성공적으로 큐에 들어갔을 때 `true`를 반환하고, 그렇지 않으면 `false`를 반환합니다.
+> 5. **사용법**: `navigator.sendBeacon(url, data)` 형식으로 사용합니다. 여기서 `url`은 데이터를 보낼 서버의 주소이고, `data`는 전송할 데이터입니다.
+>
+> 측정 결과를 `fetch` 대신 `sendBeacon`으로 전송하는 이유는 다음과 같습니다.
+>
+> 1. **성능**: 페이지의 언로드 동안에도 성능에 영향을 주지 않으면서 데이터를 보낼 수 있습니다.
+> 2. **신뢰성**: `fetch`는 페이지를 닫거나 새로고침하면 요청이 완료되지 않을 수 있는 반명, `sendBeacon`은 이러한 상황에서도 서버에 데이터를 성공적으로 전송합니다.
+> 3. **간편함**: 간단한 데이터를 전송할 때 더 간편합니다. 일반적으로 추가적인 에러 처리나 응답 처리가 필요하지 않습니다.
+
+> **토막 상식**: 만약 [Google Analytics](https://analytics.google.com/analytics/web/)를 사용한다면, `id` 값을 사용하여 지표값 분포를 수동으로 구성할 수 있습니다. (백분위수 계산 등)
+>
+> ```js
+> useReportWebVitals(metric => {
+>   // Use `window.gtag` if you initialized Google Analytics as this example:
+>   // https://github.com/vercel/next.js/blob/canary/examples/with-google-analytics/pages/_app.js
+>   window.gtag('event', metric.name, {
+>     value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value), // values must be integers
+>     event_label: metric.id, // id unique to current page load
+>     non_interaction: true, // avoids affecting bounce rate.
+>   });
+> }
+> ```
+>
+> 자세한 내용은 [Google Analytics에 결과 보내기](https://github.com/GoogleChrome/web-vitals#send-the-results-to-google-analytics)를 참고하세요.
